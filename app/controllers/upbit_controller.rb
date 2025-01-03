@@ -7,7 +7,6 @@ class UpbitController < ApplicationController
 
 
   def index
-    
   end
 
   def bitcoin_price
