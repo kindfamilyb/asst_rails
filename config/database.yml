@@ -1,0 +1,28 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  port: 5432
+
+development:
+  <<: *default
+  database: asst
+  username: postgres
+  password: el3W409PNwss
+  # db 마이그레이션 할때는 localhost
+  # 외부에서 접속할때는 pgvector
+  host: pgvector
+
+test:
+  <<: *default
+  database: asst
+  username: postgres
+  password: el3W409PNwss
+  host: localhost
+
+production:
+  <<: *default
+  database: asst
+  username: postgres
+  password: el3W409PNwss
+  host: localhost

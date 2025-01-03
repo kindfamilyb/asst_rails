@@ -1,0 +1,2 @@
+class AddColumsToUser < ApplicationRecord
+end

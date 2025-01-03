@@ -1,0 +1,9 @@
+<h1>Real-time Posts</h1>
+<div id="posts">
+  <% @posts.each do |post| %>
+    <div>
+      <h3><%= post.id %></h3>
+      <p><%= post.name %></p>
+    </div>
+  <% end %>
+</div>

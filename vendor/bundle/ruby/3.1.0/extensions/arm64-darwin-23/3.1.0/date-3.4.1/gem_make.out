@@ -1,0 +1,24 @@
+current directory: /Users/wonbongjung/container/rails_7.2.1/asst/vendor/bundle/ruby/3.1.0/gems/date-3.4.1/ext/date
+/Users/wonbongjung/.rbenv/versions/3.1.2/bin/ruby extconf.rb
+checking for rb_category_warn()... yes
+checking for timezone in time.h with  -Werror... yes
+checking for altzone in time.h with  -Werror... no
+creating Makefile
+
+current directory: /Users/wonbongjung/container/rails_7.2.1/asst/vendor/bundle/ruby/3.1.0/gems/date-3.4.1/ext/date
+make DESTDIR\= sitearchdir\=./.gem.20241218-98357-lo665x sitelibdir\=./.gem.20241218-98357-lo665x clean
+
+current directory: /Users/wonbongjung/container/rails_7.2.1/asst/vendor/bundle/ruby/3.1.0/gems/date-3.4.1/ext/date
+make DESTDIR\= sitearchdir\=./.gem.20241218-98357-lo665x sitelibdir\=./.gem.20241218-98357-lo665x
+compiling date_core.c
+compiling date_parse.c
+compiling date_strftime.c
+compiling date_strptime.c
+linking shared-object date_core.bundle
+
+current directory: /Users/wonbongjung/container/rails_7.2.1/asst/vendor/bundle/ruby/3.1.0/gems/date-3.4.1/ext/date
+make DESTDIR\= sitearchdir\=./.gem.20241218-98357-lo665x sitelibdir\=./.gem.20241218-98357-lo665x install
+/opt/homebrew/bin/ginstall -c -m 0755 date_core.bundle ./.gem.20241218-98357-lo665x
+
+current directory: /Users/wonbongjung/container/rails_7.2.1/asst/vendor/bundle/ruby/3.1.0/gems/date-3.4.1/ext/date
+make DESTDIR\= sitearchdir\=./.gem.20241218-98357-lo665x sitelibdir\=./.gem.20241218-98357-lo665x clean

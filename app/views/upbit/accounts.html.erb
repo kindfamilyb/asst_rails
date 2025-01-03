@@ -1,0 +1,23 @@
+
+<%= link_to "Home", root_path %>
+
+<h4><%= @btc_profit_rate %> %</h4>
+<h4><%= @krw_balance %>원</h4>
+
+<div>
+  현재 BTC 시세: <span id="btc_price"><%= @btc_price %></span> 원
+  <span id="btc_price"></span>
+</div>
+
+
+<div>redis값으로 불러온값 : <%= @current_bitcoin_redis_price %></div>
+<div id="bitcoin-price">
+레디스에서 수익률 계산해서 특정 수익률일때 하루에 한번 매도 구현
+</div>
+<div>매도기록</div> 
+
+<div id="bitcoin-price">Loading...(실시간시세 액션케이블로 구현중)</div>
+
+<!-- Action Cable용 자바스크립트가 로드되어야 함 -->
+<!-- Rails 7 이상에서는 import-map, webpack, esbuild, vite 등 다양한 방식이 가능 -->
+<%= javascript_include_tag "application", "data-turbo-track": "reload" %>

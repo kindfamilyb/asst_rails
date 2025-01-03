@@ -1,0 +1,24 @@
+:concurrency: 20
+:queues:
+  - default
+  - mailers
+
+# :scheduler:
+#   :schedule:
+#     fetch_upbit_price_job:
+#       every: ["10s"]  # 매 1분마다 실행
+#       class: "FetchUpbitPriceJob"
+#       queue: default
+
+
+# UpbitApiService.sell_10_percent_of_balance_if_profit_rate_between_10_and_15 직접 호출 하도록 수정
+:scheduler:
+  :schedule:
+    fetch_upbit_price_job:
+      every: ["10s"]  # 매 1분마다 실행
+      class: "BitcoinAccountProfitSellTradingJob"
+      queue: default
+
+
+
+    

@@ -1,0 +1,10 @@
+<h1>Upbit#index</h1>
+<p>Find me in app/views/upbit/index.html.erb</p>
+<h1>Upbit KRW-BTC 시세</h1>
+<div>
+    현재 BTC 시세: <span id="btc_price"><%= @btc_price %></span> 원
+</div>
+
+<!-- Action Cable용 자바스크립트가 로드되어야 함 -->
+<!-- Rails 7 이상에서는 import-map, webpack, esbuild, vite 등 다양한 방식이 가능 -->
+<%= javascript_include_tag "application", "data-turbo-track": "reload" %>

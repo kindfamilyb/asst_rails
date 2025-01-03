@@ -1,0 +1,16 @@
+<h1>Pages#homess</h1>
+<p>Find me in app/views/pages/home.html.erb</p>
+
+<% if current_user %>
+    <h2><%= current_user.email %></h2>
+    <h2><%= current_user.id %></h2>
+    <%= image_tag(current_user.avatar_url) %>
+    <%= link_to "Edit Account", edit_user_registration_path %>
+    <%= link_to "bitcoin", upbit_accounts_path %>
+    <%= button_to "Logout", destroy_user_session_path, data: {turbo: "false"}, method: :delete %>
+    <%= link_to "post_action_cable", posts_index_path %>
+<% else %>
+    <%= link_to "Login", new_user_session_path %>
+
+    <%= link_to "Create Account", new_user_registration_path %>
+<% end %>

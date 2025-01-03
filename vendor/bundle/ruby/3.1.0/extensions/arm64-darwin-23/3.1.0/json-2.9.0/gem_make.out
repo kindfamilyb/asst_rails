@@ -1,0 +1,23 @@
+current directory: /Users/wonbongjung/container/rails_7.2.1/asst/vendor/bundle/ruby/3.1.0/gems/json-2.9.0/ext/json/ext/parser
+/Users/wonbongjung/.rbenv/versions/3.1.2/bin/ruby extconf.rb
+checking for rb_enc_interned_str() in ruby.h... yes
+checking for rb_hash_new_capa() in ruby.h... no
+checking for rb_hash_bulk_insert() in ruby.h... yes
+checking for rb_category_warn() in ruby.h... yes
+checking for whether -std=c99 is accepted as CFLAGS... yes
+creating Makefile
+
+current directory: /Users/wonbongjung/container/rails_7.2.1/asst/vendor/bundle/ruby/3.1.0/gems/json-2.9.0/ext/json/ext/parser
+make DESTDIR\= sitearchdir\=./.gem.20241218-98357-tgaakn sitelibdir\=./.gem.20241218-98357-tgaakn clean
+
+current directory: /Users/wonbongjung/container/rails_7.2.1/asst/vendor/bundle/ruby/3.1.0/gems/json-2.9.0/ext/json/ext/parser
+make DESTDIR\= sitearchdir\=./.gem.20241218-98357-tgaakn sitelibdir\=./.gem.20241218-98357-tgaakn
+compiling parser.c
+linking shared-object json/ext/parser.bundle
+
+current directory: /Users/wonbongjung/container/rails_7.2.1/asst/vendor/bundle/ruby/3.1.0/gems/json-2.9.0/ext/json/ext/parser
+make DESTDIR\= sitearchdir\=./.gem.20241218-98357-tgaakn sitelibdir\=./.gem.20241218-98357-tgaakn install
+/opt/homebrew/bin/ginstall -c -m 0755 parser.bundle ./.gem.20241218-98357-tgaakn/json/ext
+
+current directory: /Users/wonbongjung/container/rails_7.2.1/asst/vendor/bundle/ruby/3.1.0/gems/json-2.9.0/ext/json/ext/parser
+make DESTDIR\= sitearchdir\=./.gem.20241218-98357-tgaakn sitelibdir\=./.gem.20241218-98357-tgaakn clean

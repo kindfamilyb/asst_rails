@@ -1,0 +1,18 @@
+current directory: /Users/wonbongjung/container/rails_7.2.1/asst/vendor/bundle/ruby/3.1.0/gems/bindex-0.8.1/ext/skiptrace
+/Users/wonbongjung/.rbenv/versions/3.1.2/bin/ruby extconf.rb
+creating Makefile
+
+current directory: /Users/wonbongjung/container/rails_7.2.1/asst/vendor/bundle/ruby/3.1.0/gems/bindex-0.8.1/ext/skiptrace
+make DESTDIR\= sitearchdir\=./.gem.20241218-98357-4v66l4 sitelibdir\=./.gem.20241218-98357-4v66l4 clean
+
+current directory: /Users/wonbongjung/container/rails_7.2.1/asst/vendor/bundle/ruby/3.1.0/gems/bindex-0.8.1/ext/skiptrace
+make DESTDIR\= sitearchdir\=./.gem.20241218-98357-4v66l4 sitelibdir\=./.gem.20241218-98357-4v66l4
+compiling cruby.c
+linking shared-object skiptrace/internal/cruby.bundle
+
+current directory: /Users/wonbongjung/container/rails_7.2.1/asst/vendor/bundle/ruby/3.1.0/gems/bindex-0.8.1/ext/skiptrace
+make DESTDIR\= sitearchdir\=./.gem.20241218-98357-4v66l4 sitelibdir\=./.gem.20241218-98357-4v66l4 install
+/opt/homebrew/bin/ginstall -c -m 0755 cruby.bundle ./.gem.20241218-98357-4v66l4/skiptrace/internal
+
+current directory: /Users/wonbongjung/container/rails_7.2.1/asst/vendor/bundle/ruby/3.1.0/gems/bindex-0.8.1/ext/skiptrace
+make DESTDIR\= sitearchdir\=./.gem.20241218-98357-4v66l4 sitelibdir\=./.gem.20241218-98357-4v66l4 clean

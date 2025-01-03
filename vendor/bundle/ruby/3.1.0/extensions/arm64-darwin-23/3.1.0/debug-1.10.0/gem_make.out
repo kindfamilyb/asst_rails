@@ -1,0 +1,19 @@
+current directory: /Users/wonbongjung/container/rails_7.2.1/asst/vendor/bundle/ruby/3.1.0/gems/debug-1.10.0/ext/debug
+/Users/wonbongjung/.rbenv/versions/3.1.2/bin/ruby extconf.rb
+creating Makefile
+
+current directory: /Users/wonbongjung/container/rails_7.2.1/asst/vendor/bundle/ruby/3.1.0/gems/debug-1.10.0/ext/debug
+make DESTDIR\= sitearchdir\=./.gem.20241221-32227-p6hpx9 sitelibdir\=./.gem.20241221-32227-p6hpx9 clean
+
+current directory: /Users/wonbongjung/container/rails_7.2.1/asst/vendor/bundle/ruby/3.1.0/gems/debug-1.10.0/ext/debug
+make DESTDIR\= sitearchdir\=./.gem.20241221-32227-p6hpx9 sitelibdir\=./.gem.20241221-32227-p6hpx9
+compiling debug.c
+compiling iseq_collector.c
+linking shared-object debug/debug.bundle
+
+current directory: /Users/wonbongjung/container/rails_7.2.1/asst/vendor/bundle/ruby/3.1.0/gems/debug-1.10.0/ext/debug
+make DESTDIR\= sitearchdir\=./.gem.20241221-32227-p6hpx9 sitelibdir\=./.gem.20241221-32227-p6hpx9 install
+/opt/homebrew/bin/ginstall -c -m 0755 debug.bundle ./.gem.20241221-32227-p6hpx9/debug
+
+current directory: /Users/wonbongjung/container/rails_7.2.1/asst/vendor/bundle/ruby/3.1.0/gems/debug-1.10.0/ext/debug
+make DESTDIR\= sitearchdir\=./.gem.20241221-32227-p6hpx9 sitelibdir\=./.gem.20241221-32227-p6hpx9 clean
