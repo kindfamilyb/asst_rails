@@ -4,7 +4,7 @@
 // Any JavaScript/Coffee file within this directory, lib/assets/javascripts, or any plugin's
 // vendor/assets/javascripts directory can be referenced here using a relative path.
 //
-// It's not advisable to add code directly here, but if you do, it'll appear at the bottom of the
+// It's not advisable to ₩add code directly here, but if you do, it'll appear at the bottom of the
 // compiled file.
 //
 // Read Sprockets README (https://github.com/rails/sprockets#sprockets-directives) for details
@@ -12,8 +12,9 @@
 //
 //= require_tree .
 //= require_self
-//= require chartkick
-//= require Chart.bundle
 import "./channels/bitcoin_price_channel";
 import "./channels/posts_channel";
-import "chartkick/chart.js";
+import "chartkick"
+import "Chart.bundle"
+import "chartkick/chart.js"
+

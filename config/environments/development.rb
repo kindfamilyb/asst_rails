@@ -89,4 +89,6 @@ Rails.application.configure do
   config.action_cable.mount_path = '/cable'
   config.action_cable.url = "ws://localhost:3000/cable"
   config.action_cable.allowed_request_origins = [ 'http://localhost:3000', /http:\/\/127\.0\.0\.1:.*/ ]
+  config.debug_exception_response_format = :default
+
 end

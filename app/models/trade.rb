@@ -3,6 +3,10 @@ class Trade < ApplicationRecord
   self.primary_key = 'trade_id'  # 커스텀 primary key 지정
   # 매도 여부에 따라 비즈니스 로직을 추가할 수도 있습니다.
   
+  def formatted_created_at
+    created_at.strftime("%Y-%m-%d %H:%M:%S")
+  end
+  
   # 수익률 계산 메소드 예시
   def profit_rate(current_price)
     return 0 if buy_price.zero?

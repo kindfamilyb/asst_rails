@@ -29,6 +29,16 @@ gem 'redis'
 gem 'redis-rails'
 gem "sidekiq"
 gem "sidekiq-scheduler", "~> 5.0"
+# 차트 관련 gem
+gem 'chartkick'
+# 만약 날짜별 그룹화 기능이 필요하다면 다음도 추가
+gem 'groupdate'
+gem 'yfinance'
+gem 'yahoo-finance'
+gem 'addressable'  # URI encoding을 위한 gem
+# gem 'alpha_vantage'
+
+
 # gem "pry"
 # gem "pry-rails"
 

@@ -69,7 +69,7 @@ class UpbitApiService
   end
 
   # 시장가 매도 주문
-  def sell_market_order(market, volume, access_key, secret_key, my_strategy_info_id)
+  def sell_market_order(market, volume, access_key, secret_key, my_strategy_info_id, profit_rate)
     # 오늘 같은 전략으로 이번주에 매도한 거래내역이 있다면 이미 매수한 주문이 있다는 메시지 전달후 종료
     today = Date.today
     if Trade.where(my_strategy_info_id: my_strategy_info_id, sold: true, created_at: today.beginning_of_week..today.end_of_week).exists?
@@ -100,7 +100,8 @@ class UpbitApiService
       user_id: strategy_info.user_id,
       my_strategy_info_id: my_strategy_info_id,
       volume: volume,                        # 매도 수량
-      remaining_volume: 0                    # 시장가 매도는 즉시 체결되므로 남은 수량은 0
+      remaining_volume: 0,                    # 시장가 매도는 즉시 체결되므로 남은 수량은 0
+      profit: profit_rate
     )
     
     puts "매도 거래 기록 저장 완료"
@@ -108,29 +109,34 @@ class UpbitApiService
 
   
 
-  # 현재 보유량의 지정된 비율만큼 매도
-  def sell_percentage_of_balance(market, percentage, access_key, secret_key, my_strategy_info_id)
-    # 퍼센트 값 검증
-    
-    raise "Percentage must be between 0 and 100" unless percentage.between?(0, 100)
-    
-    accounts = get_accounts(access_key, secret_key)
-    currency = market.split('-').last # 'KRW-BTC'에서 'BTC' 추출
-    account = accounts.find { |a| a['currency'] == currency }
-    raise "No balance found for #{currency}" if account.nil?
-
-    balance = account['balance'].to_f
-    sell_amount = balance * (percentage / 100.0)
-    puts "총 보유량: #{balance}"
-    puts "매도 수량: #{sell_amount} (#{percentage}%)"
-
-    sell_market_order(market, sell_amount, access_key, secret_key, my_strategy_info_id)
-    
-    puts "#{percentage}% 매도 요청 완료"
+# 현재 보유량의 지정된 비율만큼 매도
+def sell_percentage_of_balance(market, percentage, access_key, secret_key, my_strategy_info_id, profit_rate)
+  # 퍼센트 값 검증
+  today = Date.today
+  if Trade.where(my_strategy_info_id: my_strategy_info_id, sold: true, created_at: today.beginning_of_week..today.end_of_week).exists?
+    puts "이번주에 같은 전략으로 매도한 거래내역이 있습니다."
+    return
   end
 
+  raise "Percentage must be between 0 and 100" unless percentage.between?(0, 100)
+  
+  accounts = get_accounts(access_key, secret_key)
+  currency = market.split('-').last # 'KRW-BTC'에서 'BTC' 추출
+  account = accounts.find { |a| a['currency'] == currency }
+  raise "No balance found for #{currency}" if account.nil?
 
-def buy_market_order(market, krw_balance, access_key, secret_key, my_strategy_info_id)
+  balance = account['balance'].to_f
+  sell_amount = balance * (percentage / 100.0)
+  puts "총 보유량: #{balance}"
+  puts "매도 수량: #{sell_amount} (#{percentage}%)"
+
+  sell_market_order(market, sell_amount, access_key, secret_key, my_strategy_info_id, profit_rate)
+  
+  puts "#{percentage}% 매도 요청 완료"
+end
+
+
+def buy_market_order(market, krw_balance, access_key, secret_key, my_strategy_info_id, profit_rate)
     # 오늘 같은 전략으로 이번주에 매도한 거래내역이 있다면 이미 매수한 주문이 있다는 메시지 전달후 종료
     today = Date.today
     if Trade.where(my_strategy_info_id: my_strategy_info_id, sold: false, created_at: today.beginning_of_week..today.end_of_week).exists?
@@ -161,7 +167,8 @@ def buy_market_order(market, krw_balance, access_key, secret_key, my_strategy_in
       user_id: strategy_info.user_id,
       my_strategy_info_id: my_strategy_info_id,
       volume: volume,                        # 매도 수량
-      remaining_volume: 0                    # 시장가 매도는 즉시 체결되므로 남은 수량은 0
+      remaining_volume: 0,                    # 시장가 매도는 즉시 체결되므로 남은 수량은 0
+      profit: profit_rate
     )
     
     puts "매수 거래 기록 저장 완료"
@@ -179,7 +186,7 @@ def buy_market_order(market, krw_balance, access_key, secret_key, my_strategy_in
     puts "총 보유량: #{krw_account['balance']}"
     puts "매수 수량: #{buy_amount} (#{krw_balance_percentage}%)"
 
-    buy_market_order(market, buy_amount, access_key, secret_key, my_strategy_info_id)
+    buy_market_order(market, buy_amount, access_key, secret_key, my_strategy_info_id, profit_rate)
     
     puts "#{krw_balance_percentage}% 매수 요청 완료"
   end
@@ -194,12 +201,12 @@ def buy_market_order(market, krw_balance, access_key, secret_key, my_strategy_in
         profit_rate = get_current_profit_rate(access_key, secret_key)
         # 현재 수익률이 10% 이상 15%이하 이면 10% 매도
         if profit_rate >= 10 && profit_rate <= 15
-          sell_percentage_of_balance('KRW-BTC', 10, access_key, secret_key, my_strategy_info.my_strategy_info_id)
+          sell_percentage_of_balance('KRW-BTC', 50, access_key, secret_key, my_strategy_info.my_strategy_info_id, profit_rate)
         end
 
         # 현재 수익률이 20% 이상 25%이하 이면 20% 매도
         if profit_rate >= 20 && profit_rate <= 25
-          sell_percentage_of_balance('KRW-BTC', 20, access_key, secret_key, my_strategy_info.my_strategy_info_id)
+          sell_percentage_of_balance('KRW-BTC', 50, access_key, secret_key, my_strategy_info.my_strategy_info_id, profit_rate)
         end
 
         # 현재 비트코인 가격 조회
@@ -210,7 +217,7 @@ def buy_market_order(market, krw_balance, access_key, secret_key, my_strategy_in
           balance = accounts.find { |a| a['currency'] == 'KRW' }['balance'].to_f
           # 현재 예수금의 50%
           krw_balance_percentage = balance * 0.5
-          buy_percentage_of_balance('KRW-BTC', krw_balance_percentage, access_key, secret_key, my_strategy_info.my_strategy_info_id)
+          buy_percentage_of_balance('KRW-BTC', krw_balance_percentage, access_key, secret_key, my_strategy_info.my_strategy_info_id, profit_rate)
         end
       rescue => e
         Rails.logger.error "Error processing strategy_info #{my_strategy_info.id}: #{e.message}"

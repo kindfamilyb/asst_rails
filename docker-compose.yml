@@ -11,12 +11,29 @@ services:
       - "3333:3333"
     environment:
       RAILS_ENV: development
-      DATABASE_HOST: localhost
-      PORT: 3333
     networks:
       - asst
     restart: always
     mem_limit: 2g  # 메모리 제한 설정
+
+    labels:
+      # 1) Traefik을 통해 라우팅을 허용
+      - "traefik.enable=true"
+
+      # 2) HTTP -> HTTPS 리다이렉트 설정
+      - "traefik.http.routers.rails-web.rule=Host(`www.asst.kr`)"    # HTTP 라우터
+      - "traefik.http.routers.rails-web.entrypoints=http"
+      - "traefik.http.routers.rails-web.middlewares=redirect-to-https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+
+      # 3) HTTPS 설정
+      - "traefik.http.routers.rails-web-secure.rule=Host(`www.asst.kr`)"  # HTTPS 라우터
+      - "traefik.http.routers.rails-web-secure.entrypoints=https"
+      - "traefik.http.routers.rails-web-secure.tls.certresolver=myresolver"
+      - "traefik.http.services.rails-web.loadbalancer.server.port=3333"   # 내부 포트
+
 networks:
   asst:
     external: true
+
+

@@ -69,6 +69,8 @@ class UpbitController < ApplicationController
       # # 수익률 계산 (매수 금액이 0이 아닌 경우에만)
       @btc_profit_rate = @btc_buy_value - @btc_currnet_value  != 0 ? (((@btc_currnet_value - @btc_buy_value) / @btc_buy_value) * 100).round(2) : 0
     end
+
+    @my_strategy_infos = MyStrategyInfo.where(user_id: current_user.id)
   end
 
   # 로그인 여부 확인 후 root로 이동시키는 메소드
@@ -76,6 +78,23 @@ class UpbitController < ApplicationController
     unless user_signed_in?
       redirect_to root_path, alert: "로그인이 필요합니다."
     end
+  end
+
+  # 토글 버튼으로 요청이 들어오면 my_strategy_info 테이블의 active_yn 컬럼을 업데이트 하는 메소드
+  def update_my_strategy_info_active_yn
+    my_strategy_info = MyStrategyInfo.find(params[:my_strategy_info_id])
+    if my_strategy_info.active_yn == 'Y'
+      my_strategy_info.update(active_yn: 'N')
+    else
+      my_strategy_info.update(active_yn: 'Y')
+    end
+    redirect_to upbit_accounts_path
+  end
+
+  # my_strategy_info_id 값으로 매매한 내역을 조회하는 메소드
+  def get_trades_by_my_strategy_info_id
+    @trades = Trade.where(my_strategy_info_id: params[:my_strategy_info_id])
+    render :get_trades_by_my_strategy_info_id
   end
 
 end

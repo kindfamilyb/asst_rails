@@ -1,0 +1,26 @@
+<h1>Settings#upbit_api_setting</h1>
+<p>Find me in app/views/settings/settings_upbit_api_setting.html.erb</p>
+
+<%= link_to "Home", root_path %>
+<%= link_to "Back", settings_index_path %>
+
+
+<%# Access key, Secret key 입력 폼  %>
+<%# @upbit_api_setting 값이 있으면 생성폼이 나오고 아니면 업데이트 폼이 나오게 한다 %>
+<% if @upbit_api_setting.present? %>
+    <h1> ID : <%= @upbit_api_setting.user_id %></h1>
+    <h1> Access Key : <%= @upbit_api_setting.access_key %></h1>
+    <h1> Secret Key : <%= @upbit_api_setting.secret_key %></h1>
+<% else %>
+    <%= form_with(url: settings_upbit_api_setting_create_path, method: :post) do |form| %>
+        <%= form.label :access_key, "Access Key" %>
+        <%= form.text_field :access_key %>
+        <%= form.label :secret_key, "Secret Key" %>
+        <%= form.text_field :secret_key %>
+        <%= form.submit "등록" %>
+    <% end %>
+<% end %>
+
+
+
+

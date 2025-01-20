@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_01_01_112437) do
+ActiveRecord::Schema[7.2].define(version: 2025_01_05_144746) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -21,6 +21,19 @@ ActiveRecord::Schema[7.2].define(version: 2025_01_01_112437) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "platform", comment: "api_key가 사용되는 플랫폼"
+  end
+
+  create_table "exchange_rates", force: :cascade do |t|
+    t.string "base_currency"
+    t.string "target_currency"
+    t.date "date"
+    t.decimal "open"
+    t.decimal "high"
+    t.decimal "low"
+    t.decimal "close"
+    t.integer "volume"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "my_strategy_infos", primary_key: "my_strategy_info_id", force: :cascade do |t|
@@ -50,6 +63,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_01_01_112437) do
     t.string "description", default: "*", null: false, comment: "전략설명"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "title", comment: "전략명"
   end
 
   create_table "trades", primary_key: "trade_id", force: :cascade do |t|
@@ -61,6 +75,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_01_01_112437) do
     t.integer "my_strategy_info_id", comment: "내전략ID"
     t.float "volume", comment: "매도수량"
     t.float "remaining_volume", comment: "남은수량"
+    t.float "profit", comment: "수익"
   end
 
   create_table "users", force: :cascade do |t|

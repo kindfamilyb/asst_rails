@@ -1,0 +1,134 @@
+<h1>Signals#index</h1>
+<p>Find me in app/views/signals/index.html.erb</p>
+<pre>ss<%= @market_data.inspect %></pre>
+<pre><%= @exchange_data.inspect %></pre>
+
+<%= javascript_include_tag "https://cdn.jsdelivr.net/npm/chart.js" %>
+<%= javascript_include_tag "https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns" %>
+<%= javascript_include_tag "chartkick", "data-turbo-track": "reload" %>
+
+<% if @exchange_data.present? %>
+  <!-- Chartkick: 예시 라인 차트 -->
+  <%= line_chart @exchange_data.map { |d| [d["date"], d["close"]] } %>
+<% else %>
+  <p>데이터가 없습니다.</p>
+<% end %>
+
+<div class="charts-grid">
+  <div class="chart-container">
+    <%= line_chart @exchange_data, 
+        xtitle: "날짜",
+        ytitle: "USD/KRW 환율",
+        title: "USD/KRW 환율 추이",
+        height: "400px",
+        points: true,
+        library: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              min: 1300,
+              max: 1500,
+              ticks: {
+                stepSize: 10
+              }
+            }
+          }
+        }
+    %>
+  </div>
+
+  <div class="chart-container">
+    <%= line_chart @dollar_index_data, 
+        xtitle: "날짜",
+        ytitle: "달러 인덱스",
+        title: "달러 인덱스(DXY) 추이",
+        height: "400px",
+        points: true,
+        library: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              ticks: {
+                stepSize: 0.5
+              }
+            }
+          }
+        }
+    %>
+  </div>
+</div>
+
+
+
+
+<style>
+.market-data-container {
+  margin: 20px;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px;
+}
+
+.table th, .table td {
+  padding: 12px;
+  text-align: right;
+  border-bottom: 1px solid #ddd;
+  white-space: nowrap;
+}
+
+.table th:first-child,
+.table td:first-child,
+.table th:nth-child(2),
+.table td:nth-child(2) {
+  text-align: left;
+}
+
+.text-success { color: #28a745; }
+.text-danger { color: #dc3545; }
+</style>
+
+<% content_for :styles do %>
+  <style>
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+
+    .chart-container {
+      position: relative;
+      width: 100%;
+      background: #fff;
+      border-radius: 8px;
+      padding: 1rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    @media (min-width: 1024px) {
+      .charts-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .charts-grid {
+        padding: 0.5rem;
+      }
+      .chart-container {
+        padding: 0.5rem;
+      }
+    }
+  </style>
+<% end %>
