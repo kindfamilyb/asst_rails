@@ -275,7 +275,7 @@ GEM
       ast (~> 2.4.1)
       racc
     pg (1.5.9)
-    pgvector (0.2.2)
+    pgvector (0.3.2)
     psych (5.2.3)
       date
       stringio
@@ -497,7 +497,7 @@ DEPENDENCIES
   omniauth-google-oauth2
   omniauth-rails_csrf_protection
   pg (~> 1.1)
-  pgvector (~> 0.2.0)
+  pgvector (~> 0.3.2)
   puma (>= 5.0)
   rack-cors
   rails (~> 7.2.1)
