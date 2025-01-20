@@ -3,7 +3,7 @@ source "https://rubygems.org"
 gem "rails", "~> 7.2.1"
 gem "sprockets-rails"
 gem "pg", "~> 1.1"
-gem 'pgvector', '~> 0.2.0' # pgvector를 ActiveRecord와 함께 사용하기 위한 gem
+gem 'pgvector', '~> 0.3.2' # pgvector를 ActiveRecord와 함께 사용하기 위한 gem
 gem 'dotenv-rails', groups: [:development, :test] # 환경 변수 관리를 위한 gem
 
 gem "puma", ">= 5.0"
