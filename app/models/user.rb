@@ -4,12 +4,16 @@ class User < ApplicationRecord
 
   has_many :my_strategy_infos
   has_many :api_key
-
+  has_many :my_buy_routine_strategy_infos
   # user 삭제시 삭제된 user의 my_strategy_infos 비활성화
   after_destroy :deactivate_my_strategy_infos
-
+  after_destroy :deactivate_my_buy_routine_strategy_infos
   def deactivate_my_strategy_infos
     my_strategy_infos.update_all(active_yn: 'N')
+  end
+
+  def has_upbit_api_key?
+    api_key.where(platform: 'upbit').exists?
   end
 
   scope :active_my_strategy_infos, -> {
@@ -18,6 +22,10 @@ class User < ApplicationRecord
 
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable, :omniauthable, omniauth_providers: [:google_oauth2]
+
+  def remember_me?
+    true
+  end
 
   def self.from_omniauth(auth)
     where(provider: auth.provider, uid: auth.uid).first_or_create do |user|
@@ -31,5 +39,9 @@ class User < ApplicationRecord
       # user.name = auth.info.name   # 사용자 이름을 저장하고 싶을 경우
       # user.image = auth.info.image # 사용자 이미지 URL을 저장하고 싶을 경우
     end
+  end
+
+  def deactivate_my_buy_routine_strategy_infos
+    my_buy_routine_strategy_infos.update_all(active_yn: 'N')
   end
 end

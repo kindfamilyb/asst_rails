@@ -5,26 +5,19 @@
 <table>
   <thead>
     <tr>
-      <th>코인</th>
-      <th>매도여부</th>
       <th>수익률</th>
       <th>유저ID</th>
-      <th>내전략ID</th>
-      <th>매도수량</th>
-      <th>남은수량</th>
       <th>매매일시</th>
     </tr>
   </thead>
   <tbody>
     <% @trades.each do |trade| %>
       <tr>
-        <td><%= trade.coin_symbol %></td>
-        <td><%= trade.sold %></td>
+        
+        
         <td><%= trade.profit %></td>
         <td><%= trade.user_id %></td>
-        <td><%= trade.my_strategy_info_id %></td>
-        <td><%= trade.volume %></td>
-        <td><%= trade.remaining_volume %></td>
+        
         <td><%= trade.formatted_created_at %></td>
       </tr>
     <% end %>

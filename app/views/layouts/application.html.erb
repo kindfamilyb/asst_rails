@@ -1,23 +1,49 @@
 <!DOCTYPE html>
-<html>
+<html class="m-0 p-0">
   <head>
     <title><%= content_for(:title) || "Asst" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
-
     <%= yield :head %>
 
-    <link rel="manifest" href="/manifest.json">
+    <!-- Favicon 설정 -->
     <link rel="icon" href="/icon.png" type="image/png">
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
-    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
-  </head>
 
-  <body>
-    <%= yield %>
-    <%= javascript_include_tag "application", "data-turbo-track": "reload" %>
+    <!-- CSS 파일 로드 -->
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+
+    <style>
+      body, html, div {
+        /* border: 1px solid black; */
+      }
+
+      @media (max-width: 770px) {
+        main {
+          padding-bottom: 4rem;
+        }
+      }
+
+      @media (min-width: 770px) {
+        main {
+          padding-top: 4.2rem;
+        }
+      }
+    </style>
+  </head>
+  <body class="m-0 p-0 min-h-screen">
+    <%= render 'layouts/header' %>
+
+    <main class="min-h-screen">
+      <%= yield %>
+      <%= javascript_include_tag 'application' %>
+    </main>
+
+    <%# 하단에 네비게이션 바 추가 %>
+    <%= render 'layouts/navigation' %>
   </body>
 </html>

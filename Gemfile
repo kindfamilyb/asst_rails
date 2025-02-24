@@ -1,7 +1,6 @@
 source "https://rubygems.org"
 
 gem "rails", "~> 7.2.1"
-gem "sprockets-rails"
 gem "pg", "~> 1.1"
 gem 'pgvector', '~> 0.2.0' # pgvector를 ActiveRecord와 함께 사용하기 위한 gem
 gem 'dotenv-rails', groups: [:development, :test] # 환경 변수 관리를 위한 gem
@@ -24,6 +23,7 @@ gem 'rack-cors'
 gem 'jwt'
 gem 'httparty'
 gem "debug"
+
 gem 'whenever', require: false
 gem 'redis'
 gem 'redis-rails'
@@ -33,15 +33,15 @@ gem "sidekiq-scheduler", "~> 5.0"
 gem 'chartkick'
 # 만약 날짜별 그룹화 기능이 필요하다면 다음도 추가
 gem 'groupdate'
+
 gem 'yfinance'
 gem 'yahoo-finance'
 gem 'addressable'  # URI encoding을 위한 gem
-# gem 'alpha_vantage'
-
-
-# gem "pry"
-# gem "pry-rails"
-
+# gem "cssbundling-rails"
+gem 'activerecord-session_store'
+# gem 'tailwindcss-ruby'
+gem 'tailwindcss-rails'
+gem 'sprockets-rails'
 
 
 group :development, :test do
@@ -61,3 +61,5 @@ group :test do
   gem "capybara"
   gem "selenium-webdriver"
 end
+
+

@@ -1,0 +1,2 @@
+module HangukHelper
+end

@@ -1,0 +1,36 @@
+<div class="container mx-auto px-4 py-8">
+  <h1 class="text-2xl font-bold mb-6">계좌 정보</h1>
+  다음미션: 새벽 3시30분에 안정적 매수
+  다음미션: 변동성이 제일큰 종목 찾아주기
+
+  <% if flash[:error] %>
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+      <span class="block sm:inline"><%= flash[:error] %></span>
+    </div>
+  <% end %>
+
+  <%= @deposit_info.inspect %>
+
+  계정ID: <%= @user_id %>
+
+  <% if @deposit_info.present? %>
+    <div class="bg-white shadow rounded-lg p-6">
+      <h2 class="text-xl font-semibold mb-4">예수금 정보</h2>
+      
+      <div class="grid grid-cols-2 gap-4">
+        <div class="col-span-1">
+          <p class="text-gray-600">D+2 예수금</p>
+          <p class="text-lg font-medium"><%= @deposit_info['output']['ord_psbl_cash'] %></p>
+        </div>
+        
+        <div class="col-span-1">
+          <p class="text-gray-600">매수 가능 금액</p>
+          <p class="text-lg font-medium"><%= @deposit_info['output']['max_buy_amt'] %></p>
+        </div>
+      </div>
+    </div>
+  <% else %>
+    <p class="text-gray-600">예수금 정보를 불러오는 중 문제가 발생했습니다.</p>
+  <% end %>
+</div>
+

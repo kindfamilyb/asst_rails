@@ -18,6 +18,15 @@
       every: ["10s"]
       class: "BitcoinAccountProfitSellTradingJob"
       queue: default
+      
+    upbit_custom_trading_job:
+      every: ["10s"]
+      class: "UpbitCustomTradingJob"
+      queue: default
+
+
+
+      
 
 # :scheduler:
 #   :schedule:

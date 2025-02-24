@@ -1,14 +1,33 @@
+require 'sidekiq/web'
+Sidekiq::Web.use Rack::Auth::Basic do |username, password|
+  username == 'admin' && password == 'password123'  # 인증 정보
+end
+
+
 Rails.application.routes.draw do
+  get "packagemarket/index"
+  get "hanguk/account"
+
+  get "settings/hanguk_api_setting", to: 'settings#hanguk_api_setting', as: 'hanguk_api_setting'
+  post "settings/hanguk_api_setting", to: 'settings#hanguk_api_setting_create', as: 'hanguk_api_setting_create'
+  put "settings/hanguk_api_setting", to: 'settings#hanguk_api_setting_update', as: 'hanguk_api_setting_update'
+
+  mount Sidekiq::Web => '/sidekiq'
+
   get "signals/index"
   get "settings/index"
-  get "settings/upbit_api_setting"
-  post "settings/upbit_api_setting_create"
-  post "settings/upbit_api_setting_update"
+  get "settings/upbit_api_setting", to: 'settings#upbit_api_setting', as: 'upbit_api_setting'
+  post "settings/upbit_api_setting", to: 'settings#upbit_api_setting_create', as: 'upbit_api_setting_create'
+  put "settings/upbit_api_setting", to: 'settings#upbit_api_setting_update', as: 'upbit_api_setting_update'
 
 
   root 'pages#home'
   get "upbit/index"
   get 'upbit/accounts', to: 'upbit#accounts'
+  # post 'upbit/update_signal_number', to: 'upbit#update_signal_number'
+  post 'upbit/update_target_profit_rate', to: 'upbit#update_target_profit_rate'
+  post 'upbit/update_trade_account_rate', to: 'upbit#update_trade_account_rate'
+  post 'upbit/update_trade_delay_duration', to: 'upbit#update_trade_delay_duration'
   get 'posts/index'
   
   devise_for :users, controllers: {
@@ -27,4 +46,10 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   # root "articles#index"
+
+  delete 'upbit/delete_my_strategy_info', to: 'upbit#delete_my_strategy_info'
+
+  post 'upbit/create_my_strategy_info', to: 'upbit#create_my_strategy_info'
+
+  post 'upbit/update_trade_type', to: 'upbit#update_trade_type'
 end

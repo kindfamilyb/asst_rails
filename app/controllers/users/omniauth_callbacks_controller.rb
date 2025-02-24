@@ -15,9 +15,19 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
     if user.present?
       sign_out_all_scopes
       flash[:success] = t 'devise.omniauth_callbacks.success', kind: 'Google'
-      sign_in_and_redirect user, event: :authentication
+      sign_in user, event: :authentication
       user.update(logined_yn: 'Y')
+      user.remember_me!
       puts "유저정보2 #{user.id}"
+
+      if user.has_upbit_api_key?
+        # upbit_accounts_path 로 이동
+        redirect_to upbit_accounts_path
+      else
+        # API 키가 없으면 다른 경로로 리다이렉트하거나 메시지를 표시
+        flash[:alert] = 'Upbit API 키가 등록되어 있지 않습니다.'
+        redirect_to root_path # 적절한 경로로 변경
+      end
     else
       flash[:alert] =
         t 'devise.omniauth_callbacks.failure', kind: 'Google', reason: "#{auth.info.email} is not authorized."

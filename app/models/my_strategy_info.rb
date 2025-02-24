@@ -7,7 +7,10 @@ class MyStrategyInfo < ApplicationRecord
 
 
     # user_id로 api_key모델을 찾아서 연관관계를 맺어줘야함
-
+    def upbit_api_key
+        upbit_api_key = ApiKey.find_by(user_id: user_id, platform: 'upbit')
+        return upbit_api_key
+    end
 
     
 end

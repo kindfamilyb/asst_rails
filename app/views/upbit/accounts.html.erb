@@ -1,13 +1,285 @@
-<%= link_to "Home", root_path %>
-<h4>비트코인수익률 : <%= @btc_profit_rate %> %</h4>
-<h4>원화잔고 : <%= @krw_balance %>원</h4>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartkick@4.0.0/dist/chartkick.min.js"></script>
 
+<div class="max-w-lg mx-auto p-6 border border-gray-300 rounded-lg m-7">
+  <h4>수익률 : <%= @btc_profit_rate %> %</h4>
+  <h4>원화 : <%= @krw_balance %> 원</h4>
+  <h4>평가액 : <%= @btc_currnet_value.round(0) %> 원</h4>
+  <h4>수익 : <%= @total_profit.round(0) %> 원 </h4>
+  <h4>
+  1y
+  <% if @price_history_comparison[:year] == 1 %> ☀️
+    <% elsif @price_history_comparison[:year] == 0 %> ❄️
+    <% elsif @price_history_comparison[:year] == -1 %> ☁️
+  <% end %>
+
+  > 6m
+  <% if @price_history_comparison[:six_month] == 1 %> ☀️
+    <% elsif @price_history_comparison[:six_month] == 0 %> ❄️
+    <% elsif @price_history_comparison[:six_month] == -1 %> ☁️
+  <% end %>
+
+  > 1m
+  <% if @price_history_comparison[:one_month] == 1 %> ☀️
+    <% elsif @price_history_comparison[:one_month] == 0 %> ❄️
+    <% elsif @price_history_comparison[:one_month] == -1 %> ☁️
+  <% end %>
+
+  > 1w
+  <% if @price_history_comparison[:one_week] == 1 %> ☀️
+    <% elsif @price_history_comparison[:one_week] == 0 %> ❄️
+    <% elsif @price_history_comparison[:one_week] == -1 %> ☁️
+  <% end %>
+  </h4>
+  
+
+
+  <div class="max-w-lg mx-auto p-6 rounded-lg m-7 bg-gray-100">
+    <%= pie_chart({ '원화잔고': @krw_balance.round(0), '비트코인평가금액': @btc_currnet_value.round(0) }, colors: ['#FF0000', '#385A8D'], height: '150px', donut: true, legend: "right") %>
+  </div>
+</div>
 <% @my_strategy_infos.each do |my_strategy_info| %>
-  <%= my_strategy_info.my_strategy_info_id %>
-  <%= my_strategy_info.strategy.title %>
-  <%= my_strategy_info.strategy.description %>
-  <%= my_strategy_info.active_yn %>
-  <%= link_to "토글", upbit_update_my_strategy_info_active_yn_path(my_strategy_info_id: my_strategy_info.my_strategy_info_id), method: :get %>
-  <%= link_to "매매내역", upbit_get_trades_by_my_strategy_info_id_path(my_strategy_info_id: my_strategy_info.my_strategy_info_id), method: :get %>
+
+    <div class="max-w-lg mx-auto p-6 border border-gray-300 rounded-lg m-7">
+      <% if my_strategy_info.strategy.strategy_type == 'package' %>
+        <div class="flex items-center">
+        패키지 전략
+        </div>
+        <div class="flex items-center">
+          <%= my_strategy_info.strategy.description %>
+          <%= link_to '삭제', upbit_delete_my_strategy_info_path(my_strategy_info_id: my_strategy_info.my_strategy_info_id), method: :delete, data: { confirm: '정말로 삭제하시겠습니까?' }, class: 'text-red-500' %>
+        </div>
+        <div class="flex items-center">
+          <%= link_to "매매내역", upbit_get_trades_by_my_strategy_info_id_path(my_strategy_info_id: my_strategy_info.my_strategy_info_id), method: :get %>
+        </div>
+        <div class="flex items-center">
+          <%= link_to upbit_update_my_strategy_info_active_yn_path(my_strategy_info_id: my_strategy_info.my_strategy_info_id), method: :get do %>
+            활성화/비활성화 : <%= my_strategy_info.active_yn %>
+          <% end %>
+        </div>
+      <% end %>
+
+      <% if my_strategy_info.strategy.strategy_type == 'custom' %>
+        <%= my_strategy_info.trade_type == 'buy' ? '매수' : '매도' %> 전략
+        <div class="flex items-center">
+          <%= link_to upbit_update_my_strategy_info_active_yn_path(my_strategy_info_id: my_strategy_info.my_strategy_info_id), method: :get do %>
+            활성화/비활성화 : <%= my_strategy_info.active_yn %>
+          <% end %>
+        </div>
+        <div class="flex items-center">
+            목표수익률: 
+            <select class="target-profit-rate-select" data-my-strategy-info-id="<%= my_strategy_info.my_strategy_info_id %>">
+              <option value="">신호 선택</option>
+              <% (-100..100).step(10) do |num| %>
+                <option value="<%= num %>" <%= 'selected' if my_strategy_info.target_profit_rate == num %>><%= num %>%</option>
+              <% end %>
+            </select>
+          </div>
+          <div class="flex items-center">
+            매매타입:
+            <select class="trade-type-select" data-my-strategy-info-id="<%= my_strategy_info.my_strategy_info_id %>">
+              <option value="">타입 선택</option>
+              <option value="buy" <%= 'selected' if my_strategy_info.trade_type == 'buy' %>>매수</option>
+              <option value="sell" <%= 'selected' if my_strategy_info.trade_type == 'sell' %>>매도</option>
+            </select>
+          </div>
+          <div class="flex items-center">
+            매매 비율:
+            <select class="trade-account-rate-select" data-my-strategy-info-id="<%= my_strategy_info.my_strategy_info_id %>">
+              <option value="">비율 선택</option>
+              <% (10..100).step(10) do |num| %>
+                <option value="<%= num %>" <%= 'selected' if my_strategy_info.trade_account_rate == num %>><%= num %>%</option>
+              <% end %>
+            </select>
+          </div>
+          <div class="flex items-center">
+            매매지연기간:
+            <select class="trade-delay-duration-select" data-my-strategy-info-id="<%= my_strategy_info.my_strategy_info_id %>">
+              <option value="">기간 선택</option>
+              <% (1..10).each do |num| %>
+                <option value="<%= num %>" <%= 'selected' if my_strategy_info.trade_delay_duration == num %>><%= num %> <%= my_strategy_info.trade_delay_type %></option>
+              <% end %>
+            </select>
+          </div>
+      <% end %>
+    </div>
+
+
+    
+    
+
 <% end %>
+<div class="max-w-lg mx-auto p-6 border border-gray-300 rounded-lg m-7">
+  <h4>다음미션: 매매지연타입도 업데이트 가능하도록 수정, 전략추가할때 매도매수 선택해서 입력할수 있도록 수정</h4>
+</div>
+
+<div class="max-w-lg mx-auto p-6 border border-gray-300 rounded-lg m-7">
+  <button id="add-strategy-btn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+    + 전략 추가
+  </button>
+</div>
+
+<div class="max-w-lg mx-auto p-6 border border-gray-300 rounded-lg m-7">
+  <%= link_to "+ 패키지 마켓", packagemarket_index_path %>
+</div>
+
+<div class="max-w-lg mx-auto p-6 border border-gray-300 rounded-lg m-7">
+  <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+    + 정기매수 설정
+  </button>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.target-profit-rate-select').forEach(function(select) {
+    select.addEventListener('change', function() {
+      const myStrategyInfoId = this.dataset.myStrategyInfoId;
+      const targetProfitRate = this.value;
+
+      fetch('/upbit/update_target_profit_rate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({
+          my_strategy_info_id: myStrategyInfoId,
+          target_profit_rate: targetProfitRate
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('목표수익률 값이 업데이트되었습니다.');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('업데이트 중 오류가 발생했습니다.');
+      });
+    });
+  });
+
+  document.querySelectorAll('.trade-account-rate-select').forEach(function(select) {
+    select.addEventListener('change', function() {
+      const myStrategyInfoId = this.dataset.myStrategyInfoId;
+      const tradeAccountRate = this.value;
+
+      fetch('/upbit/update_trade_account_rate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({
+          my_strategy_info_id: myStrategyInfoId,
+          trade_account_rate: tradeAccountRate
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('매매 비율 값이 업데이트되었습니다.');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('업데이트 중 오류가 발생했습니다.');
+      });
+    });
+  });
+
+  document.querySelectorAll('.trade-delay-duration-select').forEach(function(select) {
+    select.addEventListener('change', function() {
+      const myStrategyInfoId = this.dataset.myStrategyInfoId;
+      const tradeDelayDuration = this.value;
+
+      fetch('/upbit/update_trade_delay_duration', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({
+          my_strategy_info_id: myStrategyInfoId,
+          trade_delay_duration: tradeDelayDuration
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('매매지연기간 값이 업데이트되었습니다.');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('업데이트 중 오류가 발생했습니다.');
+      });
+    });
+  });
+
+  document.querySelectorAll('.trade-type-select').forEach(function(select) {
+    select.addEventListener('change', function() {
+      const myStrategyInfoId = this.dataset.myStrategyInfoId;
+      const tradeType = this.value;
+
+      fetch('/upbit/update_trade_type', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({
+          my_strategy_info_id: myStrategyInfoId,
+          trade_type: tradeType
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('매매타입이 업데이트되었습니다.');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('업데이트 중 오류가 발생했습니다.');
+      });
+    });
+  });
+
+  document.getElementById('add-strategy-btn').addEventListener('click', function() {
+    // const strategyType = prompt('전략 유형을 입력하세요 (custom/package):');
+    // if (strategyType !== 'custom' && strategyType !== 'package') {
+    //   alert('올바른 전략 유형을 입력하세요.');
+    //   return;
+    // }
+
+    fetch('/upbit/create_my_strategy_info', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+      },
+      body: JSON.stringify({
+        target_profit_rate: 10,
+        trade_account_rate: 50,
+        trade_delay_duration: 1
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert('전략이 추가되었습니다.');
+        location.reload();
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('전략 추가 중 오류가 발생했습니다.');
+    });
+  });
+});
+</script>
 
