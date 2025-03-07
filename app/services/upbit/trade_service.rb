@@ -78,14 +78,26 @@ module Upbit
                             else
                                 sell_amount = target_coin_balance * (50 / 100.0)
                                 puts "12-1-1.sell_amount: #{sell_amount}"
-                                # puts "12-2-2.trade_account_rate_number: #{trade_account_rate_number}"
                             end
 
-                            # if my_account_rate_of_return <= target_trade_rate_number # 테스트용 조건
-                            if my_account_rate_of_return >= target_trade_rate_number && my_account_rate_of_return <= target_trade_rate_number + 3
-                                # 매도
+                            if target_trade_rate_number < 0
+                                target_trade_rate_number_start_number = target_trade_rate_number
+                                target_trade_rate_number_end_number = target_trade_rate_number - 3
+                                puts "15-1.target_trade_rate_number_start_number: #{target_trade_rate_number_start_number}"
+                                puts "15-2.target_trade_rate_number_end_number: #{target_trade_rate_number_end_number}"
+                                target_range = (target_trade_rate_number_end_number..target_trade_rate_number_start_number).include?(my_account_rate_of_return)
+                            else
+                                target_trade_rate_number_start_number = target_trade_rate_number
+                                target_trade_rate_number_end_number = target_trade_rate_number + 3
+                                puts "15-3.target_trade_rate_number_start_number: #{target_trade_rate_number_start_number}"
+                                puts "15-4.target_trade_rate_number_end_number: #{target_trade_rate_number_end_number}"
+                                target_range = (target_trade_rate_number_start_number..target_trade_rate_number_end_number).include?(my_account_rate_of_return)
+                            end                            
+
+                            puts "15.target_range: #{target_range}"
+
+                            if target_range == true
                                 puts "15.매도 조건 충족"
-                                # puts "16.target_coin_name: #{target_coin_name}"
                                 puts "17.target_trade_rate_number: #{target_trade_rate_number}"
                                 puts "18.sell_amount: #{sell_amount}"
                                 puts "19.access_key: #{access_key}"
@@ -93,23 +105,13 @@ module Upbit
                                 puts "21.my_strategy_info.my_strategy_info_id: #{my_strategy_info.my_strategy_info_id}"
                                 puts "22.trade_delay_type: #{trade_delay_type}"
                                 puts "23.trade_delay_duration: #{trade_delay_duration}"
-
                                 puts "24.my_account_rate_of_return: #{my_account_rate_of_return}"
-
-                                # profit = Upbit::AccountInfosService.new(user_id: my_strategy_info.user_id).calculate_total_profit_rate * (trade_account_rate_number / 100.0)
-                                # puts "24.1.profit: #{Upbit::AccountInfosService.new(user_id: my_strategy_info.user_id).calculate_total_profit_rate}"
-                                
                                 
                                 total_profit_cash = Upbit::AccountInfosService.new(user_id: user_id).calculate_total_profit_cash
-
-                                
                                 puts "25.total_profit_cash: #{total_profit_cash}"
 
                                 real_profit_cash = total_profit_cash * (trade_account_rate_number / 100.0)
-
                                 puts "26.real_profit: #{real_profit_cash.round(0)}"
-
-
 
                                 today = Date.today
                                 # 매매지연이 trade_delay_type이 week, month, year에 따라 분기처리
@@ -122,9 +124,8 @@ module Upbit
                                 end
 
                                 puts "25.duration: #{duration}"
-
                                 if Trade.where(my_strategy_info_id: my_strategy_info.my_strategy_info_id, sold: true, created_at: duration).exists?
-                                    puts "이번 #{trade_delay_type} 에 같은 전략으로 매도한 거래내역이 있습니다."
+                                    puts "이번 #{duration} 에 같은 전략으로 매도한 거래내역이 있습니다."
                                     return
                                 end
 
@@ -138,35 +139,51 @@ module Upbit
                             end
                         end
 
-                        puts "매도조건확인전"
+                        puts "매수조건확인전"
                         if my_strategy_info.trade_type == 'buy' && my_strategy_info.trade_type.present?
-
                             puts "50.my_account_rate_of_return_true #{my_account_rate_of_return <= target_trade_rate_number}"
                             puts "51.my_account_rate_of_return_true #{my_account_rate_of_return <= target_trade_rate_number && my_account_rate_of_return >= target_trade_rate_number - 3}"
+                            if target_trade_rate_number < 0
+                                target_trade_rate_number_start_number = target_trade_rate_number
+                                target_trade_rate_number_end_number = target_trade_rate_number - 3
+                                puts "15-1.target_trade_rate_number_start_number: #{target_trade_rate_number_start_number}"
+                                puts "15-2.target_trade_rate_number_end_number: #{target_trade_rate_number_end_number}"
+                                target_range = (target_trade_rate_number_end_number..target_trade_rate_number_start_number).include?(my_account_rate_of_return)
+                            else
+                                target_trade_rate_number_start_number = target_trade_rate_number
+                                target_trade_rate_number_end_number = target_trade_rate_number + 3
+                                puts "15-3.target_trade_rate_number_start_number: #{target_trade_rate_number_start_number}"
+                                puts "15-4.target_trade_rate_number_end_number: #{target_trade_rate_number_end_number}"
+                                target_range = (target_trade_rate_number_start_number..target_trade_rate_number_end_number).include?(my_account_rate_of_return)
+                            end            
 
-                            if my_account_rate_of_return <= target_trade_rate_number && my_account_rate_of_return >= target_trade_rate_number - 3
-                                # 매수
-                                # 매수 수량
-
-                                # 매도 수량
-                                # 매도 비율 계산
+                            if target_range == true
+                                # 수정계획
+                                # 기본은 Auto
+                                # account 선택시 예수금 기준 매수비율 적용
+                                # volume 선택시 코인평가액 기준 매수비율 적용
+                                # 현재 가지고 있는 보유 코인 평가금액(원화) * 매수 비율 > 예수금 현금
+                                btc_price = Upbit::PriceInfosService.new.bitcoin_price
+                                puts "52.btc_price: #{btc_price}"
+                                btc_currnet_value = target_coin_balance.to_f * btc_price
+                                puts "53.btc_currnet_value: #{btc_currnet_value}"
+                                  # 매수 수량 = 현재 가지고 있는 보유 코인 수량 * 매수 비율
+                                # 현재 가지고 있는 보유 코인 평가금액(원화) * 매수 비율 < 예수금 현금
+                                  # 매수 수량 = 예수금 현금 * 매수 비율
                                 trade_account_rate_number = my_strategy_info.trade_account_rate.to_f
-                                # 총 보유량 계산
-                                krw_balance = my_accounts.find { |a| a['currency'] == 'KRW' }['balance'].to_f
-                                puts "3-27.total_balance: #{krw_balance}"
+                                puts "54.trade_account_rate_number: #{trade_account_rate_number}"
 
-                                # 매수 수량 계산
-                                buy_amount = (krw_balance * (trade_account_rate_number / 100.0)).round(0)
-                                puts "3-28.buy_amount: #{buy_amount}"
-                                
-                                # 총 수익금 계산
-                                # total_profit_cash = Upbit::AccountInfosService.new(user_id: user_id).calculate_total_profit_cash
-                                # puts "25.total_profit_cash: #{total_profit_cash}"
-
-                                # real_profit_cash = total_profit_cash * (trade_account_rate_number / 100.0)
-                                # puts "26.real_profit: #{real_profit_cash.round(0)}"
-
-
+                                if my_strategy_info.sell_target_type == 'auto' || my_strategy_info.sell_target_type.nil?
+                                    if btc_currnet_value * (trade_account_rate_number / 100.0) >= krw_account_balance
+                                        buy_amount = (btc_currnet_value * (trade_account_rate_number / 100.0)).round(0)
+                                    else
+                                        buy_amount = (krw_account_balance * (trade_account_rate_number / 100.0)).round(0)
+                                    end
+                                elsif my_strategy_info.sell_target_type == 'account'
+                                    buy_amount = (krw_account_balance * (trade_account_rate_number / 100.0)).round(0)
+                                elsif my_strategy_info.sell_target_type == 'volume'
+                                    buy_amount = (btc_currnet_value * (trade_account_rate_number / 100.0)).round(0)
+                                end
 
                                 today = Date.today
                                 # 매매지연이 trade_delay_type이 week, month, year에 따라 분기처리
@@ -177,7 +194,6 @@ module Upbit
                                 elsif trade_delay_type == 'year'
                                     duration = today.beginning_of_year..today.end_of_year
                                 end
-
                                 puts "3-25.duration: #{duration}"
 
                                 if Trade.where(my_strategy_info_id: my_strategy_info.my_strategy_info_id, sold: false, created_at: duration).exists?
@@ -186,8 +202,7 @@ module Upbit
                                 end
                                 
                                 begin
-                                    # sell_upbit_percentage_of_balance(target_coin_name, target_trade_rate_number, sell_amount, access_key, secret_key, my_strategy_info.my_strategy_info_id, trade_delay_type, trade_delay_duration)
-                                    buy_upbit_market_order(target_trade_rate_number, buy_amount, access_key, secret_key, my_strategy_info.my_strategy_info_id, my_account_rate_of_return, real_profit_cash, user_id)
+                                    buy_upbit_market_order(target_trade_rate_number, buy_amount, access_key, secret_key, my_strategy_info.my_strategy_info_id, my_account_rate_of_return, real_profit_cash, user_id, duration)
                                     puts "매수 주문 완료"
                                 rescue => e
                                     puts "매수 주문 오류: #{e.message}"
@@ -206,30 +221,6 @@ module Upbit
             end
         end
 
-        # def sell_upbit_percentage_of_balance(market, target_trade_rate_number, sell_amount, access_key, secret_key, my_strategy_info_id, trade_delay_type, trade_delay_duration)
-        #     # 퍼센트 값 검증
-        #     today = Date.today
-        #     # 매매지연이 trade_delay_type이 week, month, year에 따라 분기처리
-        #     if trade_delay_type == 'week'
-        #         duration = today.beginning_of_week..today.end_of_week
-        #     elsif trade_delay_type == 'month'
-        #         duration = today.beginning_of_month..today.end_of_month
-        #     elsif trade_delay_type == 'year'
-        #         duration = today.beginning_of_year..today.end_of_year
-        #     end
-
-        #     # if Trade.where(my_strategy_info_id: my_strategy_info_id, sold: true, created_at: duration).exists?
-        #     #   puts "이번 #{trade_delay_type} 에 같은 전략으로 매도한 거래내역이 있습니다."
-        #     #   return
-        #     # end
-
-        #     # sell_upbit_market_order(market, target_trade_rate_number, sell_amount, my_strategy_info_id, access_key, secret_key)
-            
-        #     puts "#{target_trade_rate_number}% 매도 요청 완료"
-        # end
-        
-        # 매도
-        # sell_upbit_market_order(target_coin_name, target_trade_rate_number, sell_amount, access_key, secret_key, my_strategy_info.my_strategy_info_id, my_account_rate_of_return, real_profit_cash)
         
         def generate_headers_with_keys(access_key, secret_key, payload = {})
             jwt_payload = {
@@ -260,7 +251,6 @@ module Upbit
         end
 
         def sell_upbit_market_order(target_trade_rate_number, sell_amount, access_key, secret_key, my_strategy_info_id, my_account_rate_of_return, real_profit_cash, user_id)
-            # puts "2-1.target_coin_name: #{target_coin_name}"
             puts "3-2.target_trade_rate_number: #{target_trade_rate_number}"
             puts "3-3.sell_amount: #{sell_amount}"
             puts "3-4.access_key: #{access_key}"
@@ -269,6 +259,7 @@ module Upbit
             puts "3-7.my_account_rate_of_return: #{my_account_rate_of_return}"
             puts "3-8.real_profit_cash: #{real_profit_cash}"
             puts "3-9.user_id: #{user_id}"
+
             url = "#{BASE_URL}/orders"
             body = {
                 market: 'KRW-BTC',      # 예: 'KRW-BTC'
@@ -285,26 +276,28 @@ module Upbit
             puts order_result
 
             # Trade 테이블에 매도 내역 저장
-            # strategy_info = MyStrategyInfo.find(my_strategy_info_id)
-            # calculate_total_profit_rate의 50% 수익금을 계산 
-            
-            
-            Trade.create(
-                coin_symbol: 'KRW-BTC',  # 'KRW-BTC'에서 'BTC' 추출
-                sold: true,
-                user_id: user_id,
-                my_strategy_info_id: my_strategy_info_id,
-                volume: sell_amount,                        # 매도 수량
-                profit_rate: my_account_rate_of_return, # 매도 당시 수익률
-                profit: real_profit_cash.round(0), # 매도시 실 수익금
-                target_trade_rate_number: target_trade_rate_number
-            )
-            
-            puts "매도 거래 기록 저장 완료"
+            begin
+                Trade.create(
+                    coin_symbol: 'KRW-BTC',  # 'KRW-BTC'에서 'BTC' 추출
+                    sold: true,
+                    user_id: user_id,
+                    my_strategy_info_id: my_strategy_info_id,
+                    volume: sell_amount,                        # 매도 수량
+                    profit_rate: my_account_rate_of_return, # 매도 당시 수익률
+                    profit: real_profit_cash.round(0), # 매도시 실 수익금
+                    target_profit_rate: target_trade_rate_number,
+                    created_at: Time.now,
+                    updated_at: Time.now
+                )
+                puts "매도 거래 기록 저장 완료"
+            rescue => e
+                error_message = "[#{Time.now}] 매도 거래 기록 저장 오류: #{e.message}\n"
+                puts "매도 거래 기록 저장 오류: #{e.message}"
+            end
         end
 
 
-        def buy_upbit_market_order(target_trade_rate_number, buy_amount, access_key, secret_key, my_strategy_info_id, my_account_rate_of_return, real_profit_cash, user_id)
+        def buy_upbit_market_order(target_trade_rate_number, buy_amount, access_key, secret_key, my_strategy_info_id, my_account_rate_of_return, real_profit_cash, user_id, duration)
             # puts "2-1.target_coin_name: #{target_coin_name}"
             puts "2-2.target_trade_rate_number: #{target_trade_rate_number}"
             puts "2-3.buy_amount: #{buy_amount}"
@@ -328,14 +321,21 @@ module Upbit
             puts order_result
 
             # Trade 테이블에 매수 내역 저장
-            Trade.create(
-                coin_symbol: 'KRW-BTC',  # 'KRW-BTC'에서 'BTC' 추출
-                sold: false,
-                user_id: user_id,
-                my_strategy_info_id: my_strategy_info_id,
-                volume: buy_amount,                       # 매수 수량
-                profit_rate: my_account_rate_of_return, # 매수 당시 수익률
-            )
+            begin
+                Trade.create(
+                    coin_symbol: 'KRW-BTC',  # 'KRW-BTC'에서 'BTC' 추출
+                    sold: false,
+                    user_id: user_id,
+                    my_strategy_info_id: my_strategy_info_id,
+                    volume: buy_amount,                       # 매수 수량
+                    profit_rate: my_account_rate_of_return, # 매수 당시 수익률,
+                    trade_delay_duration: duration
+                )
+                puts "매수 거래 기록 저장 완료"
+            rescue => e
+                error_message = "[#{Time.now}] 매수 거래 기록 저장 오류: #{e.message}\n"
+                puts "매수 거래 기록 저장 오류: #{e.message}"
+            end
         end
 
 
@@ -356,8 +356,4 @@ module Upbit
             end
         end
     end
-
-
-    
-
 end

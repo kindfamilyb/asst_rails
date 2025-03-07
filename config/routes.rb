@@ -5,6 +5,9 @@ end
 
 
 Rails.application.routes.draw do
+
+  get "upbit/trade_custom_package_change", to: 'upbit#trade_custom_package_change', as: 'trade_custom_package_change'
+  get "packages/update_active_yn", to: 'packages#update_active_yn', as: 'update_active_yn'
   get "packagemarket/index"
   get "hanguk/account"
 
@@ -52,4 +55,9 @@ Rails.application.routes.draw do
   post 'upbit/create_my_strategy_info', to: 'upbit#create_my_strategy_info'
 
   post 'upbit/update_trade_type', to: 'upbit#update_trade_type'
+
+  get 'packages/index', to: 'packages#index'
+  get 'packages/download', to: 'packages#download'
+
+  resources :packages, only: [:index, :show]
 end

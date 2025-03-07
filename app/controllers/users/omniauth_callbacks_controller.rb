@@ -22,7 +22,7 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
 
       if user.has_upbit_api_key?
         # upbit_accounts_path 로 이동
-        redirect_to upbit_accounts_path
+        redirect_to packages_index_path
       else
         # API 키가 없으면 다른 경로로 리다이렉트하거나 메시지를 표시
         flash[:alert] = 'Upbit API 키가 등록되어 있지 않습니다.'

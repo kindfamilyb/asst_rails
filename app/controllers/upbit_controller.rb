@@ -29,13 +29,12 @@ class UpbitController < ApplicationController
     else
       @error = "Failed to fetch Bitcoin price data: #{response.code}"
     end
-
-
-
-
   end
 
   def accounts
+    # 패키지 전략 활성화여부 확인해서 boolean 값 으로 전달
+    @package_strategy_exposure_yn = MyStrategyInfo.where(user_id: current_user.id).where.not(package_id: nil).where(exposure_yn: 'Y').exists?
+
     user_id = current_user.id
     api_keys = ApiKey.where(user_id: user_id).where(platform: 'upbit').first
 
@@ -76,11 +75,9 @@ class UpbitController < ApplicationController
       @btc_profit_rate = @btc_buy_value - @btc_currnet_value  != 0 ? (((@btc_currnet_value - @btc_buy_value) / @btc_buy_value) * 100).round(2) : 0
 
       # 비트코인평가금액 = 현재가격 * 비트코인 보유량
-      
-      
     end
 
-    @my_strategy_infos = MyStrategyInfo.where(user_id: current_user.id).order(created_at: :asc)
+    @my_strategy_infos = MyStrategyInfo.where(user_id: current_user.id).order(trade_type: :asc)
 
     @total_profit_rate = calculate_total_profit_rate
     # 주문 내역 조회
@@ -107,6 +104,9 @@ class UpbitController < ApplicationController
       @price_history_comparison = upbit_price_history_comparison
       
     end
+
+    # my_strategy_infos 테이블의 데이터 중에서 package_id 값이 있는 데이터들을 조회해서 패키지id 별로 묶어서 패키지 정보 조회
+    @package_my_strategy_infos = MyStrategyInfo.where.not(package_id: nil).order(trade_type: :asc).group_by(&:package_id)
   end
 
   # upbit 가격 52주일전종가, 중간일자, 어제종가를 비교해서 상승, 하락 출력
@@ -225,6 +225,20 @@ class UpbitController < ApplicationController
       one_month: one_month_history_comparison,
       one_week: one_week_history_comparison
     }
+  end
+
+  def trade_custom_package_change
+    package_strategy_exposure_yn = params[:package_strategy_exposure_yn]
+
+    if package_strategy_exposure_yn == 'true'
+      MyStrategyInfo.where(user_id: current_user.id).where.not(package_id: nil).where(exposure_yn: 'Y').update_all(exposure_yn: 'N')
+      MyStrategyInfo.where(user_id: current_user.id).where(package_id: nil).update_all(exposure_yn: 'Y')
+    else
+      MyStrategyInfo.where(user_id: current_user.id).where.not(package_id: nil).where(exposure_yn: 'N').update_all(exposure_yn: 'Y')
+      MyStrategyInfo.where(user_id: current_user.id).where(package_id: nil).update_all(exposure_yn: 'N')
+    end
+
+    redirect_to upbit_accounts_path
   end
 
 

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_02_10_104916) do
+ActiveRecord::Schema[7.2].define(version: 2025_03_07_093554) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -36,6 +36,17 @@ ActiveRecord::Schema[7.2].define(version: 2025_02_10_104916) do
     t.decimal "low"
     t.decimal "close"
     t.integer "volume"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "markets", primary_key: "market_id", force: :cascade do |t|
+    t.string "market_name", comment: "마켓명"
+    t.string "market_description", comment: "마켓설명"
+    t.string "package_id", comment: "패키지아이디"
+    t.string "platform", comment: "플랫폼"
+    t.string "asst_name", comment: "자산명"
+    t.string "market_type", comment: "마켓타입"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
@@ -69,19 +80,40 @@ ActiveRecord::Schema[7.2].define(version: 2025_02_10_104916) do
     t.string "trade_type", comment: "매매 타입"
     t.string "asst_name", comment: "매매 자산이름"
     t.string "trade_delay_type", comment: "매매지연 단위 주월년"
+    t.integer "package_id", comment: "패키지아이디"
+    t.string "sell_target_type", comment: "매도 타입(account:예수금, volume:코인보유량, auto:자동)"
+    t.string "exposure_yn", default: "N", comment: "노출여부"
   end
 
-  create_table "posts", force: :cascade do |t|
-    t.string "name"
+  create_table "package_downloads", primary_key: "package_download_id", force: :cascade do |t|
+    t.integer "package_id", comment: "패키지아이디"
+    t.integer "user_id", comment: "사용자아이디"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
 
-  create_table "products", force: :cascade do |t|
-    t.string "name"
-    t.string "part_number"
+  create_table "package_infos", primary_key: "package_info_id", force: :cascade do |t|
+    t.integer "package_id", comment: "패키지아이디"
+    t.integer "strategy_id", comment: "전략아이디"
+    t.integer "target_profit_rate", comment: "목표수익률"
+    t.integer "trade_account_rate", comment: "매매계좌비율"
+    t.integer "trade_amount", comment: "매매금액"
+    t.string "trade_type", comment: "매매타입"
+    t.string "asst_name", comment: "자산명"
+    t.string "trade_delay_duration", comment: "매매지연기간"
+    t.string "trade_delay_type", comment: "매매지연타입"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "packages", primary_key: "package_id", force: :cascade do |t|
+    t.string "title", comment: "패키지명"
+    t.string "description", comment: "패키지설명"
+    t.string "package_type", comment: "패키지타입"
+    t.string "platform", comment: "플랫폼"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "download_count", default: 0, comment: "다운로드 수"
   end
 
   create_table "sessions", force: :cascade do |t|
@@ -115,7 +147,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_02_10_104916) do
     t.integer "profit", comment: "매도당시수익금"
     t.integer "target_profit_rate", default: 0, comment: "목표수익률"
     t.integer "trade_account_rate", default: 0, comment: "예수금매매비율"
-    t.integer "trade_delay_duration", default: 0, comment: "매매대기시간"
+    t.string "trade_delay_duration", default: "0", comment: "매매대기시간"
+    t.integer "my_buy_routine_strategy_info_id", comment: "매수 루틴 전략 정보 ID"
   end
 
   create_table "users", force: :cascade do |t|

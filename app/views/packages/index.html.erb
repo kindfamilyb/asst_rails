@@ -1,0 +1,20 @@
+<%= link_to "<", upbit_accounts_path %>
+
+<% @packages.each do |package| %>
+<div class="flex items-center">
+  <%= package.package_id %>
+  </div>
+  <div class="flex items-center">
+  <%= package.title %>
+  </div>
+  <div class="flex items-center">
+  <%= package.description %>
+  </div>
+  <div class="flex items-center">
+  <%= package.download_count %>
+  </div>
+  <%= link_to "다운로드", packages_download_path(package_id: package.package_id) %>
+  <div class="flex items-center">
+    <%= link_to "상세보기", package_path(package) %>
+  </div>
+<% end %>

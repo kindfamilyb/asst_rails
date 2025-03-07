@@ -1,16 +1,16 @@
-<%# 위아래 크기에서 중간에 위치시키기 %>
-
-
-<div class="flex flex-col min-h-screen border-b border-gray-300">
+<div class="flex flex-col min-h-screen justify-center items-center border-b border-gray-300">
     <div class="flex flex-col">
-        <div class="flex justify-center items-center font-bold text-2xl border-b border-gray-200">
-            <div class="text-blue-500">
-                asst
+        <div class="max-w-lg mx-auto p-6 m-7 text-4xl font-bold">
+            <div class="flex items-center">
+                ASST
             </div>
         </div>
-
-        <div class="flex justify-center items-center">
-            <%= render "devise/shared/links" %>
+    </div>
+    <div class="flex flex-col">
+        <div class="max-w-lg mx-auto p-6 border border-gray-300 rounded-lg m-7">
+            <div class="flex items-center">
+                <%= render "devise/shared/links" %>
+            </div>
         </div>
     </div>
 </div>
