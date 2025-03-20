@@ -3,41 +3,18 @@ require 'securerandom'
 
 class UpbitController < ApplicationController
   before_action :redirect_unless_logged_in
-  before_action :bitcoin_price
+  # before_action :bitcoin_price
   before_action :authenticate_user!
+
+  before_action :set_bitcoin_price_info
+  before_action :set_bitcoin_price
+  before_action :set_current_user_id
 
   def index
   end
 
-  def bitcoin_price
-    url = "https://api.upbit.com/v1/ticker?markets=KRW-BTC"
-    response = HTTParty.get(url)
-    
-    puts response
-
-    if response.code == 200
-      ticker_data = response.parsed_response.first
-      @bitcoin_price = {
-        market: ticker_data['market'],              # 거래 시장 (예: KRW-BTC)
-        trade_price: ticker_data['trade_price'],    # 현재 거래 가격
-        high_price: ticker_data['high_price'],      # 고가
-        low_price: ticker_data['low_price'],        # 저가
-        timestamp: Time.at(ticker_data['timestamp'] / 1000) # 데이터 시간
-      }
-
-      @btc_price = @bitcoin_price[:trade_price]
-    else
-      @error = "Failed to fetch Bitcoin price data: #{response.code}"
-    end
-  end
-
   def accounts
-    # 패키지 전략 활성화여부 확인해서 boolean 값 으로 전달
-    @package_strategy_exposure_yn = MyStrategyInfo.where(user_id: current_user.id).where.not(package_id: nil).where(exposure_yn: 'Y').exists?
-
-    user_id = current_user.id
-    api_keys = ApiKey.where(user_id: user_id).where(platform: 'upbit').first
-
+    api_keys = ApiKey.where(user_id: @current_user_id).where(platform: 'upbit').first
     access_key = api_keys.access_key
     secret_key = api_keys.secret_key
 
@@ -51,15 +28,13 @@ class UpbitController < ApplicationController
 
     url = "https://api.upbit.com/v1/accounts"
     headers = { "Authorization" => "Bearer #{jwt_token}" }
-
     response = HTTParty.get(url, headers: headers)
-    @current_bitcoin_redis_price = RedisService.get('current_bitcoin_redis_price')
 
+    # 현재 잔고 조회
     if response.code == 200
       accounts = response.parsed_response
       @krw_account = accounts.select { |a| a["currency"] == "KRW" }
       @krw_balance = @krw_account.map { |a| a["balance"] }[0].to_i
-
       @btc_account = accounts.select { |a| a["currency"] == "BTC" }
       @btc_balance = @btc_account.map { |a| a["balance"] }[0]
       @btc_avg_buy_price = @btc_account.map { |a| a["avg_buy_price"] }[0]
@@ -69,51 +44,31 @@ class UpbitController < ApplicationController
       @btc_buy_value = @btc_balance.to_f * @btc_avg_buy_price.to_f
 
       # 현재 평가금액 계산 balance * bitcoin_currnet_price
-      @btc_currnet_value = @btc_balance.to_f * @bitcoin_price[:trade_price]
+      @btc_currnet_value = @btc_balance.to_f * @bitcoin_price_now
 
       # # 수익률 계산 (매수 금액이 0이 아닌 경우에만)
       @btc_profit_rate = @btc_buy_value - @btc_currnet_value  != 0 ? (((@btc_currnet_value - @btc_buy_value) / @btc_buy_value) * 100).round(2) : 0
-
-      # 비트코인평가금액 = 현재가격 * 비트코인 보유량
     end
 
-    @my_strategy_infos = MyStrategyInfo.where(user_id: current_user.id).order(trade_type: :asc)
-
+    @package_strategy_exposure_yn = MyStrategyInfo.where(user_id: @current_user_id).where.not(package_id: nil).where(exposure_yn: 'Y').exists?
+    @my_strategy_infos = MyStrategyInfo.where(user_id: @current_user_id).order(trade_type: :desc)
     @total_profit_rate = calculate_total_profit_rate
-    # 주문 내역 조회
-    @orders = fetch_orders
-
-    # 현재 비트코인 가격 조회
-    url = "https://api.upbit.com/v1/ticker?markets=KRW-BTC"
-    response = HTTParty.get(url)
     
-    puts response
-
-    if response.code == 200
-      ticker_data = response.parsed_response.first
-      @bitcoin_price = {
-        market: ticker_data['market'],              # 거래 시장 (예: KRW-BTC)
-        trade_price: ticker_data['trade_price'],    # 현재 거래 가격
-        high_price: ticker_data['high_price'],      # 고가
-        low_price: ticker_data['low_price'],        # 저가
-        timestamp: Time.at(ticker_data['timestamp'] / 1000) # 데이터 시간
-      }
-
-      @now_price = @bitcoin_price[:trade_price]
-
-      @price_history_comparison = upbit_price_history_comparison
-      
-    end
-
+    # 주문 내역 조회
+    # @orders = fetch_orders
+    @price_history_comparison = upbit_price_history_comparison
     # my_strategy_infos 테이블의 데이터 중에서 package_id 값이 있는 데이터들을 조회해서 패키지id 별로 묶어서 패키지 정보 조회
-    @package_my_strategy_infos = MyStrategyInfo.where.not(package_id: nil).order(trade_type: :asc).group_by(&:package_id)
+    @package_my_strategy_infos = MyStrategyInfo.where.not(package_id: nil).order(trade_type: :desc).group_by(&:package_id)
+  end
+
+  def buy_routine_setting
+    @my_buy_routine_strategy_infos = MyBuyRoutineStrategyInfo.where(user_id: @current_user_id)
   end
 
   # upbit 가격 52주일전종가, 중간일자, 어제종가를 비교해서 상승, 하락 출력
   
   def upbit_price_history_comparison
     market = "KRW-BTC"
-    
     # 현재 시간 기준으로 365일 전 날짜 계산
     today = Time.now
     one_year_ago = today - 365.days
@@ -131,8 +86,6 @@ class UpbitController < ApplicationController
 
     # 1주일전 날짜 계산
     one_week_ago = today - 7.days
-
-
     
     # 각 날짜의 일봉 데이터 조회
     url = "https://api.upbit.com/v1/candles/days"
@@ -163,34 +116,34 @@ class UpbitController < ApplicationController
     
     puts response
 
-    if response.code == 200
-      ticker_data = response.parsed_response.first
-      bitcoin_price = {
-        market: ticker_data['market'],              # 거래 시장 (예: KRW-BTC)
-        trade_price: ticker_data['trade_price'],    # 현재 거래 가격
-        high_price: ticker_data['high_price'],      # 고가
-        low_price: ticker_data['low_price'],        # 저가
-        timestamp: Time.at(ticker_data['timestamp'] / 1000) # 데이터 시간
-      }
+    # if response.code == 200
+    #   ticker_data = response.parsed_response.first
+    #   bitcoin_price = {
+    #     market: ticker_data['market'],              # 거래 시장 (예: KRW-BTC)
+    #     trade_price: ticker_data['trade_price'],    # 현재 거래 가격
+    #     high_price: ticker_data['high_price'],      # 고가
+    #     low_price: ticker_data['low_price'],        # 저가
+    #     timestamp: Time.at(ticker_data['timestamp'] / 1000) # 데이터 시간
+    #   }
 
-      now_price = bitcoin_price[:trade_price]
-    end
+    #   now_price = bitcoin_price[:trade_price]
+    # end
 
     price_history_comparison = {}
 
     # 1년전 종가 비교
-    if one_year_ago_response[0]['trade_price'] < six_month_ago_date_response[0]['trade_price'] && six_month_ago_date_response[0]['trade_price'] < now_price
+    if one_year_ago_response[0]['trade_price'] < six_month_ago_date_response[0]['trade_price'] && six_month_ago_date_response[0]['trade_price'] < @bitcoin_price_now
       one_year_history_comparison = 1
-    elsif one_year_ago_response[0]['trade_price'] > six_month_ago_date_response[0]['trade_price'] && six_month_ago_date_response[0]['trade_price'] > now_price
+    elsif one_year_ago_response[0]['trade_price'] > six_month_ago_date_response[0]['trade_price'] && six_month_ago_date_response[0]['trade_price'] > @bitcoin_price_now
       one_year_history_comparison = -1
     else
       one_year_history_comparison = 0
     end
 
     # 6개월전 종가 비교
-    if six_month_ago_date_response[0]['trade_price'] < three_month_ago_date_response[0]['trade_price'] && three_month_ago_date_response[0]['trade_price'] < now_price
+    if six_month_ago_date_response[0]['trade_price'] < three_month_ago_date_response[0]['trade_price'] && three_month_ago_date_response[0]['trade_price'] < @bitcoin_price_now
       six_month_history_comparison = 1
-    elsif six_month_ago_date_response[0]['trade_price'] > three_month_ago_date_response[0]['trade_price'] && three_month_ago_date_response[0]['trade_price'] > now_price
+    elsif six_month_ago_date_response[0]['trade_price'] > three_month_ago_date_response[0]['trade_price'] && three_month_ago_date_response[0]['trade_price'] > @bitcoin_price_now
       six_month_history_comparison = -1
     else
       six_month_history_comparison = 0
@@ -198,9 +151,9 @@ class UpbitController < ApplicationController
 
     # 1개월전 종가 비교
     if one_month_ago_date_response[0]['trade_price'].present? && middle_of_month_date_response[0]['trade_price'].present?
-      if one_month_ago_date_response[0]['trade_price'] < middle_of_month_date_response[0]['trade_price'] && middle_of_month_date_response[0]['trade_price'] < now_price
+      if one_month_ago_date_response[0]['trade_price'] < middle_of_month_date_response[0]['trade_price'] && middle_of_month_date_response[0]['trade_price'] < @bitcoin_price_now
         one_month_history_comparison = 1
-      elsif one_month_ago_date_response[0]['trade_price'] > middle_of_month_date_response[0]['trade_price'] && middle_of_month_date_response[0]['trade_price'] > now_price
+      elsif one_month_ago_date_response[0]['trade_price'] > middle_of_month_date_response[0]['trade_price'] && middle_of_month_date_response[0]['trade_price'] > @bitcoin_price_now
         one_month_history_comparison = -1
       else
         one_month_history_comparison = 0
@@ -210,9 +163,9 @@ class UpbitController < ApplicationController
     end
 
     # 1주일전 종가 비교
-    if one_week_ago_date_response[0]['trade_price'] < three_days_ago_date_response[0]['trade_price'] && three_days_ago_date_response[0]['trade_price'] < now_price
+    if one_week_ago_date_response[0]['trade_price'] < three_days_ago_date_response[0]['trade_price'] && three_days_ago_date_response[0]['trade_price'] < @bitcoin_price_now
       one_week_history_comparison = 1
-    elsif one_week_ago_date_response[0]['trade_price'] > three_days_ago_date_response[0]['trade_price'] && three_days_ago_date_response[0]['trade_price'] > now_price
+    elsif one_week_ago_date_response[0]['trade_price'] > three_days_ago_date_response[0]['trade_price'] && three_days_ago_date_response[0]['trade_price'] > @bitcoin_price_now
       one_week_history_comparison = -1
     else
       one_week_history_comparison = 0
@@ -227,23 +180,46 @@ class UpbitController < ApplicationController
     }
   end
 
-  def trade_custom_package_change
+  # 패키지 커스텀 토글
+  def trade_custom_package_exposure_yn_toggle
     package_strategy_exposure_yn = params[:package_strategy_exposure_yn]
 
     if package_strategy_exposure_yn == 'true'
       MyStrategyInfo.where(user_id: current_user.id).where.not(package_id: nil).where(exposure_yn: 'Y').update_all(exposure_yn: 'N')
       MyStrategyInfo.where(user_id: current_user.id).where(package_id: nil).update_all(exposure_yn: 'Y')
+      flash[:notice] = "커스텀 전략 설정"
     else
+      flash[:notice] = "다운로드 받은 패키지가 없습니다" unless MyStrategyInfo.where(user_id: current_user.id).where.not(package_id: nil).exists?
       MyStrategyInfo.where(user_id: current_user.id).where.not(package_id: nil).where(exposure_yn: 'N').update_all(exposure_yn: 'Y')
       MyStrategyInfo.where(user_id: current_user.id).where(package_id: nil).update_all(exposure_yn: 'N')
+      flash[:notice] = "패키지 설정"
     end
 
-    redirect_to upbit_accounts_path
+    redirect_to root_path
   end
 
-
-
-    # 로그인 여부 확인 후 root로 이동시키는 메소드
+  def update_package_activated
+    package_id = params[:package_id]
+    user_id = current_user.id
+    
+    begin
+      my_strategy_info = MyStrategyInfo.where(user_id: user_id).where(package_id: package_id)
+      if my_strategy_info.first.active_yn == 'N'
+        my_strategy_info.update_all(active_yn: 'Y')
+        flash[:notice] = "패키지 활성화 성공"
+        MyStrategyInfo.where(user_id: user_id).where(package_id: nil).update_all(active_yn: 'N')
+        flash[:notice] = "커스텀전략들 비활성화 성공"
+      else
+        my_strategy_info.update_all(active_yn: 'N')
+        flash[:notice] = "패키지 비활성화 성공"
+      end
+    rescue => e
+      flash[:notice] = "패키지 활성화 실패"
+    end
+    redirect_to root_path
+  end
+  
+  # 로그인 여부 확인 후 root로 이동시키는 메소드
   def redirect_unless_logged_in
     unless user_signed_in?
       redirect_to root_path, alert: "로그인이 필요합니다."
@@ -258,10 +234,10 @@ class UpbitController < ApplicationController
     else
       my_strategy_info.update(active_yn: 'Y')
     end
-    redirect_to upbit_accounts_path
+    redirect_to root_path
   end
 
-  # my_strategy_info_id 값으로 매매한 내역을 조회하는 메소드
+  # 커스텀전략 개별 데이터 수정
   def get_trades_by_my_strategy_info_id
     @trades = Trade.where(my_strategy_info_id: params[:my_strategy_info_id])
     render :get_trades_by_my_strategy_info_id
@@ -288,7 +264,7 @@ class UpbitController < ApplicationController
   def delete_my_strategy_info
     my_strategy_info = MyStrategyInfo.find(params[:my_strategy_info_id])
     my_strategy_info.destroy
-    redirect_to upbit_accounts_path, notice: '전략이 삭제되었습니다.'
+    redirect_to root_path, notice: '전략이 삭제되었습니다.'
   end
 
   def create_my_strategy_info
@@ -300,7 +276,8 @@ class UpbitController < ApplicationController
       active_yn: 'N',
       strategy_id: 4,
       asst_name: 'BTC',
-      trade_delay_type: 'week'
+      trade_delay_type: 'week',
+      sell_target_type: 'auto'
     )
     render json: { success: true }
   end
@@ -311,10 +288,16 @@ class UpbitController < ApplicationController
     render json: { success: true }
   end
 
+  def update_buy_won_cash_account
+    my_buy_routine_strategy_info = MyBuyRoutineStrategyInfo.find(params[:my_buy_routine_strategy_info_id])
+    my_buy_routine_strategy_info.update(buy_won_cash_account: params[:buy_won_cash_account])
+    render json: { success: true }
+  end
+
   private
 
   def calculate_total_profit_rate
-    user_id = current_user.id
+    user_id = @current_user_id
     api_keys = ApiKey.where(user_id: user_id).where(platform: 'upbit').first
     
     access_key = api_keys.access_key
@@ -356,6 +339,7 @@ class UpbitController < ApplicationController
     return 0 unless response.code == 200
 
     orders = response.parsed_response
+
     @total_profit = 0
     @total_investment = 0
     
@@ -383,20 +367,6 @@ class UpbitController < ApplicationController
     ((@total_profit / @total_investment) * 100).round(2)
   end
 
-  # def generate_token
-  #   access_key = Rails.application.credentials.dig(:upbit, :access_key)
-  #   secret_key = Rails.application.credentials.dig(:upbit, :secret_key)
-  #   nonce = SecureRandom.uuid
-
-  #   payload = {
-  #     access_key: access_key,
-  #     nonce: nonce,
-  #     query_hash: nil,
-  #     query_hash_alg: nil
-  #   }
-
-  #   JWT.encode(payload, secret_key, 'HS256')
-  # end
 
   def fetch_orders
     url = "https://api.upbit.com/v1/orders/closed"
@@ -472,7 +442,7 @@ class UpbitController < ApplicationController
     ((new_price - old_price) / old_price * 100).round(2)
   end
 
-  private
+
 
   def redirect_unless_logged_in
     unless user_signed_in?
@@ -480,4 +450,31 @@ class UpbitController < ApplicationController
     end
   end
 
+  def set_bitcoin_price_info
+    url = "https://api.upbit.com/v1/ticker?markets=KRW-BTC"
+    response = HTTParty.get(url)
+    
+    puts response
+
+    if response.code == 200
+      ticker_data = response.parsed_response.first
+      @bitcoin_price = {
+        market: ticker_data['market'],              # 거래 시장 (예: KRW-BTC)
+        trade_price: ticker_data['trade_price'],    # 현재 거래 가격
+        high_price: ticker_data['high_price'],      # 고가
+        low_price: ticker_data['low_price'],        # 저가
+        timestamp: Time.at(ticker_data['timestamp'] / 1000) # 데이터 시간
+      }
+    else
+      @error = "Failed to fetch Bitcoin price data: #{response.code}"
+    end
+  end
+
+  def set_bitcoin_price
+    @bitcoin_price_now = Upbit::PriceInfosService.new.bitcoin_price
+  end
+
+  def set_current_user_id
+    @current_user_id = current_user.id
+  end
 end

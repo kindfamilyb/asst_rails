@@ -10,7 +10,7 @@
       <%# 네비게이션 메뉴 %>
       <nav class="flex items-center space-x-8">
         <%= link_to "홈", root_path, class: "text-gray-600 hover:text-gray-900" %>
-        <%= link_to "업비트", upbit_accounts_path, class: "text-gray-600 hover:text-gray-900" %>
+        <%= link_to "업비트", root_path, class: "text-gray-600 hover:text-gray-900" %>
         <%= link_to "패키지마켓", packages_index_path, class: "text-gray-600 hover:text-gray-900" %>
         <%= link_to "세팅", settings_index_path, class: "text-gray-600 hover:text-gray-900" %>
         <% if current_user %>

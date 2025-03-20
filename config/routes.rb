@@ -5,12 +5,19 @@ end
 
 
 Rails.application.routes.draw do
+  root 'upbit#accounts'
+  get "upbit/buy_routine_setting", to: 'upbit#buy_routine_setting', as: 'buy_routine_setting'
+  get "upbit/trade_custom_package_exposure_yn_toggle", to: 'upbit#trade_custom_package_exposure_yn_toggle', as: 'trade_custom_package_exposure_yn_toggle'
+  get "upbit/update_package_activated", to: 'upbit#update_package_activated', as: 'update_package_activated'
+  get "settings/index"
+  get "settings/upbit_api_setting", to: 'settings#upbit_api_setting', as: 'upbit_api_setting'
+  post "settings/upbit_api_setting", to: 'settings#upbit_api_setting_create', as: 'upbit_api_setting_create'
+  put "settings/upbit_api_setting", to: 'settings#upbit_api_setting_update', as: 'upbit_api_setting_update'
 
-  get "upbit/trade_custom_package_change", to: 'upbit#trade_custom_package_change', as: 'trade_custom_package_change'
   get "packages/update_active_yn", to: 'packages#update_active_yn', as: 'update_active_yn'
   get "packagemarket/index"
+  
   get "hanguk/account"
-
   get "settings/hanguk_api_setting", to: 'settings#hanguk_api_setting', as: 'hanguk_api_setting'
   post "settings/hanguk_api_setting", to: 'settings#hanguk_api_setting_create', as: 'hanguk_api_setting_create'
   put "settings/hanguk_api_setting", to: 'settings#hanguk_api_setting_update', as: 'hanguk_api_setting_update'
@@ -18,15 +25,12 @@ Rails.application.routes.draw do
   mount Sidekiq::Web => '/sidekiq'
 
   get "signals/index"
-  get "settings/index"
-  get "settings/upbit_api_setting", to: 'settings#upbit_api_setting', as: 'upbit_api_setting'
-  post "settings/upbit_api_setting", to: 'settings#upbit_api_setting_create', as: 'upbit_api_setting_create'
-  put "settings/upbit_api_setting", to: 'settings#upbit_api_setting_update', as: 'upbit_api_setting_update'
+  
 
-
-  root 'pages#home'
+  # root 'pages#home'
   get "upbit/index"
-  get 'upbit/accounts', to: 'upbit#accounts'
+
+  
   # post 'upbit/update_signal_number', to: 'upbit#update_signal_number'
   post 'upbit/update_target_profit_rate', to: 'upbit#update_target_profit_rate'
   post 'upbit/update_trade_account_rate', to: 'upbit#update_trade_account_rate'
@@ -60,4 +64,6 @@ Rails.application.routes.draw do
   get 'packages/download', to: 'packages#download'
 
   resources :packages, only: [:index, :show]
+
+  post 'upbit/update_buy_won_cash_account', to: 'upbit#update_buy_won_cash_account', as: 'update_buy_won_cash_account'
 end

@@ -30,7 +30,7 @@ class SettingsController < ApplicationController
       secret_key: params[:secret_key]
       )
 
-    redirect_to upbit_accounts_path
+    redirect_to root_path
   end
 
   def upbit_api_setting_update

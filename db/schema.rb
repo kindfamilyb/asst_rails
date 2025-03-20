@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_03_07_093554) do
+ActiveRecord::Schema[7.2].define(version: 2025_03_13_141305) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -25,6 +25,18 @@ ActiveRecord::Schema[7.2].define(version: 2025_03_07_093554) do
     t.string "api_secret", comment: "api_secret"
     t.string "account_number", comment: "계좌번호"
     t.string "account_code", comment: "계좌코드"
+  end
+
+  create_table "buy_routine_settings", force: :cascade do |t|
+    t.integer "user_id", comment: "유저아이디"
+    t.integer "buy_amount", comment: "매수금액"
+    t.string "every_day_yn", comment: "매일매수여부"
+    t.string "week", comment: "매주요일매수"
+    t.string "month", comment: "매월매수일"
+    t.string "active_yn", comment: "활성화여부"
+    t.string "exposure_yn", comment: "노출여부"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "exchange_rates", force: :cascade do |t|
@@ -149,6 +161,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_03_07_093554) do
     t.integer "trade_account_rate", default: 0, comment: "예수금매매비율"
     t.string "trade_delay_duration", default: "0", comment: "매매대기시간"
     t.integer "my_buy_routine_strategy_info_id", comment: "매수 루틴 전략 정보 ID"
+    t.string "trade_type", comment: "정기매수(routine), 조건매수(strategy)"
   end
 
   create_table "users", force: :cascade do |t|

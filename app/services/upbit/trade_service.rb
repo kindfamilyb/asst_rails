@@ -175,7 +175,7 @@ module Upbit
 
                                 if my_strategy_info.sell_target_type == 'auto' || my_strategy_info.sell_target_type.nil?
                                     if btc_currnet_value * (trade_account_rate_number / 100.0) >= krw_account_balance
-                                        buy_amount = (btc_currnet_value * (trade_account_rate_number / 100.0)).round(0)
+                                        buy_amount = (btc_currnet_value * (trade_account_rate_number / 100.0)).round(0) 
                                     else
                                         buy_amount = (krw_account_balance * (trade_account_rate_number / 100.0)).round(0)
                                     end
@@ -184,6 +184,8 @@ module Upbit
                                 elsif my_strategy_info.sell_target_type == 'volume'
                                     buy_amount = (btc_currnet_value * (trade_account_rate_number / 100.0)).round(0)
                                 end
+
+                                puts "55.buy_amount: #{buy_amount}"
 
                                 today = Date.today
                                 # 매매지연이 trade_delay_type이 week, month, year에 따라 분기처리

@@ -13,7 +13,8 @@ module Upbit
                 MyStrategyInfo.create(
                     user_id: user_id,
                     strategy_id: package_info.strategy_id,
-                    active_yn: "Y",
+                    active_yn: "N",
+                    exposure_yn: "N",
                     delete_yn: "N",
                     target_profit_rate: package_info.target_profit_rate,
                     trade_account_rate: package_info.trade_account_rate,

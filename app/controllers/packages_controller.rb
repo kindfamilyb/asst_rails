@@ -17,7 +17,7 @@ class PackagesController < ApplicationController
     @package.download_count += 1
     @package.save
 
-    redirect_to upbit_accounts_path
+    redirect_to root_path
   end
 
   def update_active_yn
@@ -33,7 +33,7 @@ class PackagesController < ApplicationController
       package_my_strategy_info.save
     end
     
-    redirect_to upbit_accounts_path
+    redirect_to root_path
   end
 
   def show

@@ -10,7 +10,7 @@
             
             <% if @api_keys.present? %>
                 <% @api_keys.each do |api_key| %>
-                    <li><%= link_to api_key.platform, upbit_accounts_path %></li>
+                    <li><%= link_to api_key.platform, root_path %></li>
                 <% end %>
             <% end %>
             <li><%= link_to "세팅", settings_index_path %></li>

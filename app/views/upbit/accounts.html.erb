@@ -2,70 +2,220 @@
 <script src="https://cdn.jsdelivr.net/npm/moment"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartkick@4.0.0/dist/chartkick.min.js"></script>
+<style>
+  @keyframes upDownEnter {
+    0% {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    50% {
+      transform: translateY(10px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0px);
+    }
+  }
 
-<div class="max-w-lg mx-auto p-6 border border-gray-300 rounded-lg m-7">
-  <h4><%= @btc_profit_rate %> % (<%= number_with_delimiter(@total_profit.round(0), delimiter: ',', separator: '.') %> 원)</h4>
+  /* 사라지는 애니메이션: 정중앙에서 윗쪽으로 살짝 올라갔다가 다시 아래로 움직이면서 페이드아웃 */
+  @keyframes upDownLeave {
+    0% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+  }
   
-  <h4> <%= number_with_delimiter(@btc_currnet_value.round(0), delimiter: ',', separator: '.') %> 원 (<%= number_with_delimiter(@krw_balance, delimiter: ',', separator: '.') %> 원)</h4>
+  #my-list li {
+    display: none;
+    opacity: 0;
+    transform: translateY(0px);
+  }
 
-  <h4>
-  1y
-  <% if @price_history_comparison[:year] == 1 %> ☀️
-    <% elsif @price_history_comparison[:year] == 0 %> ❄️
-    <% elsif @price_history_comparison[:year] == -1 %> ☁️
-  <% end %>
+  #my-list li.active {
+    display: block;
+    opacity: 1;
+    transform: translateY(10px);
+    animation: upDownEnter 1.5s ease-in-out forwards;
+  }
+</style>
 
-  | 6m
-  <% if @price_history_comparison[:six_month] == 1 %> ☀️
-    <% elsif @price_history_comparison[:six_month] == 0 %> ❄️
-    <% elsif @price_history_comparison[:six_month] == -1 %> ☁️
-  <% end %>
+<!-- 커스텀 애니메이션 정의 -->
+<% if flash[:notice] %>
+  <!-- 커스텀 애니메이션 정의 -->
+  <style>
+    /* 등장 애니메이션: 아랫쪽에서 살짝 올라왔다가 윗쪽으로 가볍게 튀어오른 뒤 정중앙에 위치 */
+    @keyframes upDownEnter {
+      0% {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      50% {
+        transform: translateY(-5px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
 
-  | 1m
-  <% if @price_history_comparison[:one_month] == 1 %> ☀️
-    <% elsif @price_history_comparison[:one_month] == 0 %> ❄️
-    <% elsif @price_history_comparison[:one_month] == -1 %> ☁️
-  <% end %>
+    /* 사라지는 애니메이션: 정중앙에서 윗쪽으로 살짝 올라갔다가 다시 아래로 움직이면서 페이드아웃 */
+    @keyframes upDownLeave {
+      0% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-10px);
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+    }
 
-  | 1w
-  <% if @price_history_comparison[:one_week] == 1 %> ☀️
-    <% elsif @price_history_comparison[:one_week] == 0 %> ❄️
-    <% elsif @price_history_comparison[:one_week] == -1 %> ☁️
-  <% end %>
-  </h4>
-  
+    /* 토스트가 등장할 때(마운트 직후) 적용할 클래스 */
+    .toast-enter {
+      animation: upDownEnter 0.6s ease-in-out forwards;
+    }
 
+    /* 토스트가 사라질 때 적용할 클래스 */
+    .toast-leave {
+      animation: upDownLeave 0.6s ease-in-out forwards;
+    }
+  </style>
 
-  <div class="max-w-lg mx-auto p-6 rounded-lg m-7 bg-gray-100">
-    <%= pie_chart({ '원화잔고': @krw_balance.round(0), '비트코인평가금액': @btc_currnet_value.round(0) }, colors: ['#FF0000', '#385A8D'], height: '150px', donut: true, legend: "right") %>
+  <!-- 토스트 팝업 -->
+  <div 
+    id="toast" 
+    class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2
+           bg-white border border-gray-300 text-gray-700 px-4 py-3 rounded shadow-lg 
+           toast-enter"
+    role="alert"
+  >
+    <%= flash[:notice] %>
   </div>
+
+  <!-- 2초 후 토스트 제거 스크립트 -->
+  <script>
+    setTimeout(() => {
+      const toast = document.getElementById('toast');
+      if (toast) {
+        // 등장 애니메이션 클래스 제거 후, 사라지는 애니메이션 클래스 추가
+        toast.classList.remove('toast-enter');
+        toast.classList.add('toast-leave');
+        
+        // 사라지는 애니메이션(0.6초)이 끝난 뒤 DOM에서 제거
+        setTimeout(() => {
+          toast.remove();
+        }, 1000);
+      }
+    }, 2000); // 2초 뒤 실행
+  </script>
+<% end %>
+
+<%# 추세 표시 %>
+<div class="flex flex-col content_box p-6 max-w-lg mx-auto">
+  <ul id="my-list">
+    <li>
+    <span>1년</span>
+    <% if @price_history_comparison[:year] == 1 %> ☀️
+      <% elsif @price_history_comparison[:year] == 0 %> ❄️
+      <% elsif @price_history_comparison[:year] == -1 %> ☁️
+    <% end %>
+    </li>
+    <li>6달
+    <% if @price_history_comparison[:six_month] == 1 %> ☀️
+      <% elsif @price_history_comparison[:six_month] == 0 %> ❄️
+      <% elsif @price_history_comparison[:six_month] == -1 %> ☁️
+    <% end %>
+    </li>
+    <li>1달
+    <% if @price_history_comparison[:one_month] == 1 %> ☀️
+      <% elsif @price_history_comparison[:one_month] == 0 %> ❄️
+      <% elsif @price_history_comparison[:one_month] == -1 %> ☁️
+    <% end %></li>
+    <li>1주일
+    <% if @price_history_comparison[:one_week] == 1 %> ☀️
+      <% elsif @price_history_comparison[:one_week] == 0 %> ❄️
+      <% elsif @price_history_comparison[:one_week] == -1 %> ☁️
+    <% end %></li>
+  </ul>
+</div>
+<div class="flex flex-col content_box p-6 max-w-lg mx-auto">
+<h4><%= @btc_profit_rate %> % (<%= number_with_delimiter(@total_profit.round(0), delimiter: ',', separator: '.') %> 원)</h4>  
+</div>
+
+<div class="flex flex-col content_box p-6 max-w-lg mx-auto">
+  
+  
+  <div class="max-w-lg mx-auto rounded-lg">
+    <canvas id="myChart"></canvas>
+  </div>
+
+  <script>
+    const ctx = document.getElementById('myChart');
+
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['원화잔고', '비트코인평가금액', '<%= number_with_delimiter(@krw_balance.round(0) + @btc_currnet_value.round(0), delimiter: ',', separator: '.') %>원'],
+        datasets: [{
+          data: [<%= @krw_balance.round(0) %>, <%= @btc_currnet_value.round(0) %>],
+          backgroundColor: [
+            '#FF0000',
+            '#385A8D'
+          ],
+          borderColor: [
+            '#FF0000',
+            '#385A8D'
+          ],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'right'
+          }
+        }
+      }
+    });
+  </script>
 </div>
 
 
-<div class="max-w-lg mx-auto p-6 border border-gray-300 rounded-lg m-7">
-  <%= link_to trade_custom_package_change_path(package_strategy_exposure_yn: @package_strategy_exposure_yn), method: :get do %>
-    패키지 화면노출 여부: <%= @package_strategy_exposure_yn %>
-  <% end %>
-</div>
+
 <%# 패키지 전략 조회 %>
 <% if @package_strategy_exposure_yn == true %>
   <% @package_my_strategy_infos.each do |package_id, my_strategy_infos| %>
-    <div class="max-w-lg mx-auto p-6 border border-gray-300 rounded-lg m-7">
-      패키지 타이틀과 설명글만 나오고 나머지는 패키지 상세화면 링크에서 볼수 있도록 하기
-      <div class="flex items-center">패키지이름: <%= Package.find(package_id).title %> </div>
+    <div class="p-6 content_box max-w-lg mx-auto">
+      <div class="flex items-center text-xl"><%= Package.find(package_id).title %></div>
       <div class="flex items-center">
-      <%= link_to update_active_yn_path(package_id: package_id), method: :get do %>
-        활성/비활성 
+      <%= link_to update_package_activated_path(package_id: package_id), method: :get do %>
+        <%= my_strategy_infos.first.active_yn == 'Y' ? '비활성화' : '활성화' %>
       <% end %>
       </div>
-      <% my_strategy_infos.each do |my_strategy_info| %>
-        <div class="flex items-center"><%= my_strategy_info.trade_type == 'buy' ? '매수' : '매도' %></div>
-        <div class="flex items-center">목표수익률: <%= my_strategy_info.target_profit_rate %></div>
-        <div class="flex items-center">매매비율: <%= my_strategy_info.trade_account_rate %></div>
-        <div class="flex items-center">매매지연기간: <%= my_strategy_info.trade_delay_duration %> <%= my_strategy_info.trade_delay_type %></div>
-        <div class="flex items-center">활성화/비활성화: <%= my_strategy_info.active_yn %></div>
-        <div class="flex items-center">노출여부: <%= my_strategy_info.exposure_yn %></div>
-      <% end %>
+      <div class="flex items-center">
+        <%= link_to "상세보기", package_path(package_id) %>
+      </div>
+      <div class="flex flex-col mt-4">
+        <% my_strategy_infos.each do |my_strategy_info| %>
+          <div class="flex flex-col p-4 border-b border-gray-200">
+            <div class="flex items-center">목표수익률: <%= my_strategy_info.target_profit_rate %></div>
+            <div class="flex items-center">매매비율: <%= my_strategy_info.trade_account_rate %></div>
+            <div class="flex items-center">매매지연기간: <%= my_strategy_info.trade_delay_duration %> <%= my_strategy_info.trade_delay_type %></div>
+          </div>
+        <% end %>  
+      </div>
+      
     </div>
   <% end %>
 <% end %>
@@ -73,13 +223,23 @@
 <% if @package_strategy_exposure_yn == false %>
   <% @my_strategy_infos.each do |my_strategy_info| %>
     <% if my_strategy_info.strategy.strategy_type == 'custom' && my_strategy_info.package_id.nil? %>
-    <div class="max-w-lg mx-auto p-6 border border-gray-300 rounded-lg m-7">
-      <%= my_strategy_info.trade_type == 'buy' ? '매수' : '매도' %> 전략
+    <div class="p-6 content_box max-w-lg mx-auto">
+      <%= my_strategy_info.trade_type == 'buy' ? '추가매수' : '익절매도' %> 전략
       <div class="flex items-center">
         <%= link_to upbit_update_my_strategy_info_active_yn_path(my_strategy_info_id: my_strategy_info.my_strategy_info_id), method: :get do %>
           활성화/비활성화 : <%= my_strategy_info.active_yn %>
         <% end %>
       </div>
+      
+      <div class="flex items-center">
+        <%= link_to upbit_delete_my_strategy_info_path(my_strategy_info_id: my_strategy_info.my_strategy_info_id), 
+            method: :delete,
+            data: { confirm: '정말로 이 전략을 삭제하시겠습니까?' },
+            class: 'text-red-500 hover:text-red-700' do %>
+          삭제
+        <% end %>
+      </div>
+      
       <div class="flex items-center">
         노출여부 : <%= my_strategy_info.exposure_yn %>
       </div>
@@ -132,8 +292,27 @@
     <% end %>
   <% end %>
 <% end %>
+<div class="p-6 content_box max-w-lg mx-auto">
+    <%= link_to trade_custom_package_exposure_yn_toggle_path(package_strategy_exposure_yn: @package_strategy_exposure_yn), method: :get do %>
+    <div class="flex justify-between items-center">
+      <div class="text-xl">
+        <% if @package_strategy_exposure_yn == true %>
+          커스텀 <%= @my_strategy_infos.select { |info| info.strategy.strategy_type == 'custom' && info.package_id.nil? }.length %>건
+        <% else %>
+          패키지 <%= @package_my_strategy_infos.length %>건  
+        <% end %>
+      </div>
+      <div class="flex items-center text-xl gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+        </svg>
+      </div>
+    </div>
+    <% end %>
+</div>
+
 <% if @package_strategy_exposure_yn == false %>
-<div class="max-w-lg mx-auto p-6 border border-gray-300 rounded-lg m-7">
+<div class="p-6 content_box max-w-lg mx-auto">
   <button id="add-strategy-btn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
     + 전략 추가
   </button>
@@ -141,15 +320,15 @@
 <% end %>
 
 <% if @package_strategy_exposure_yn == true %>
-  <div class="max-w-lg mx-auto p-6 border border-gray-300 rounded-lg m-7">
+  <div class="p-6 content_box max-w-lg mx-auto">
     <%= link_to "+ 패키지 마켓", packages_index_path %>
   </div>
 <% end %>
 
-<div class="max-w-lg mx-auto p-6 border border-gray-300 rounded-lg m-7">
-  <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+<div class="p-6 content_box max-w-lg mx-auto">
+  <%= link_to buy_routine_setting_path, method: :get do %>
     + 정기매수 설정
-  </button>
+  <% end %>
 </div>
 
 <script>
@@ -304,3 +483,26 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const items = document.querySelectorAll('#my-list li');
+  let currentIndex = 0;
+
+  function showNextItem() {
+    // 현재 활성화된 아이템 숨기기
+    items.forEach(item => item.classList.remove('active'));
+    
+    // 다음 아이템 보여주기
+    items[currentIndex].classList.add('active');
+    
+    // 다음 인덱스 계산
+    currentIndex = (currentIndex + 1) % items.length;
+  }
+
+  // 초기 아이템 표시
+  showNextItem();
+
+  // 3초마다 다음 아이템 표시
+  setInterval(showNextItem, 3000);
+});
+</script>

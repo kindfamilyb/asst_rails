@@ -1,0 +1,53 @@
+<%= link_to "<", root_path %>
+<h1>정기매수 설정</h1>
+
+<ul>
+    <% @my_buy_routine_strategy_infos.each do |my_buy_routine_strategy_info| %>
+        <li>
+            매수 금액
+            <%= select_tag "buy_won_cash_account_#{my_buy_routine_strategy_info.id}",
+                options_for_select((1..10).map { |n| [n.to_s + "만원", n * 10000] }, my_buy_routine_strategy_info.buy_won_cash_account),
+                class: "buy-won-cash-account-select",
+                data: { 
+                    my_buy_routine_strategy_info_id: my_buy_routine_strategy_info.id,
+                    url: update_buy_won_cash_account_path
+                }
+            %>
+        </li>
+    <% end %>
+</ul>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.buy-won-cash-account-select').forEach(function(select) {
+        select.addEventListener('change', function() {
+            const myBuyRoutineStrategyInfoId = this.dataset.myBuyRoutineStrategyInfoId;
+            const buyWonCashAccount = this.value;
+            const url = this.dataset.url;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify({
+                    my_buy_routine_strategy_info_id: myBuyRoutineStrategyInfoId,
+                    buy_won_cash_account: buyWonCashAccount
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('매수 금액이 업데이트되었습니다.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('매수 금액 업데이트 중 오류가 발생했습니다.');
+            });
+        });
+    });
+});
+</script>
+

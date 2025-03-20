@@ -1,0 +1,2 @@
+class BuyRoutineSetting < ApplicationRecord
+end

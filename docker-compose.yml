@@ -33,16 +33,6 @@ services:
       - "traefik.http.routers.rails-web-secure.tls.certresolver=myresolver"
       - "traefik.http.services.rails-web.loadbalancer.server.port=3333"   # 내부 포트
 
-      # /sidekiq 경로 추가 설정
-      # - "traefik.http.middlewares.sidekiq-stripprefix.stripprefix.prefixes=/sidekiq"
-      # - "traefik.http.routers.sidekiq.rule=Host(`www.asst.kr`) && PathPrefix(`/sidekiq`)"
-      # - "traefik.http.routers.sidekiq.middlewares=sidekiq-stripprefix"
-      # - "traefik.http.routers.sidekiq.entrypoints=https"
-      # - "traefik.http.routers.sidekiq.tls.certresolver=myresolver"
-
-      # # 여기서 포트를 3333으로 변경!!
-      # - "traefik.http.services.sidekiq.loadbalancer.server.port=3333"
-
 networks:
   asst:
     external: true
